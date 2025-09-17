@@ -10,8 +10,9 @@ import { checkIsDirectory, createDirectory, writeToFile } from '../utils';
 import { UrlClass } from './UrlClass';
 import {
     ExportFileTypeValue,
-    GCUserHash,
     GarminDomain,
+    GCGearId,
+    GCUserHash,
     ICountActivities,
     IDailyStepsType,
     IGarminTokens,
@@ -39,6 +40,7 @@ import {
     GCActivityId,
     IActivity
 } from './types/activity';
+import { GearData } from './types/gear';
 
 let config: GCCredentials | undefined = undefined;
 
@@ -533,6 +535,55 @@ export default class GarminConnect {
         } catch (error: any) {
             throw new Error(`Error in getHeartRate: ${error.message}`);
         }
+    }
+
+    /**
+     * Returns the gear data for the user.
+     * @param availableGearDate - Optional date to filter the gear available at the date (format: 'YYYY-MM-DD').
+     */
+    async getGear(availableGearDate?: string): Promise<GearData[]> {
+        const id = (await this.getUserProfile()).profileId;
+        return this.client.get(this.url.GEAR(id, availableGearDate));
+    }
+
+    /**
+     * Returns the gear data assigned with a specific activity.
+     * @param activityId
+     */
+    async getGearsForActivity(activityId: GCActivityId): Promise<GearData[]> {
+        return this.client.get(this.url.GEAR_OF_ACTIVITY(activityId));
+    }
+
+    /**
+     * Links a gear item to an activity.
+     * @param activityId
+     * @param gearId - uuid field from GearData
+     * @return GearData - the linked gear item data
+     */
+    async linkGearToActivity(
+        activityId: GCActivityId,
+        gearId: GCGearId
+    ): Promise<GearData> {
+        return this.client.put(
+            this.url.LINK_GEAR_TO_ACTIVITY(activityId, gearId),
+            {}
+        );
+    }
+
+    /**
+     * Unlinks a gear item from an activity.
+     * @param activityId
+     * @param gearId - uuid field from GearData
+     * @return GearData - the unlinked gear item data
+     */
+    async unlinkGearFromActivity(
+        activityId: GCActivityId,
+        gearId: GCGearId
+    ): Promise<GearData> {
+        return this.client.put(
+            this.url.UNLINK_GEAR_FROM_ACTIVITY(activityId, gearId),
+            {}
+        );
     }
 
     async get<T>(url: string, data?: any) {

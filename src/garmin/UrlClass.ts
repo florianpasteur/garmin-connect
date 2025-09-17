@@ -1,4 +1,5 @@
-import { GCWorkoutId, GarminDomain } from './types';
+import { GCWorkoutId, GarminDomain, GCGearId, GCUserProfileId } from './types';
+import { GCActivityId } from './types/activity';
 
 export class UrlClass {
     private domain: GarminDomain;
@@ -97,5 +98,30 @@ export class UrlClass {
     }
     get WORKOUTS() {
         return `${this.GC_API}/workout-service/workouts`;
+    }
+
+    GEAR_OF_ACTIVITY(activityId: GCActivityId) {
+        return `${this.GC_API}/gear-service/gear/filterGear?activityId=${activityId}`;
+    }
+
+    /**
+     * Returns URL to retrieve gear for a user that is available on a specific date if specified.
+     * @param userProfilePk - User profile ID
+     * @param availableGearDate - Format: YYYY-MM-DD
+     */
+    GEAR(userProfilePk: GCUserProfileId, availableGearDate?: string) {
+        return `${
+            this.GC_API
+        }/gear-service/gear/filterGear?userProfilePk=${userProfilePk}${
+            availableGearDate ? `&availableGearDate=${availableGearDate}` : ''
+        }`;
+    }
+
+    LINK_GEAR_TO_ACTIVITY(activityId: GCActivityId, gearId: GCGearId) {
+        return `${this.GC_API}/gear-service/gear/link/${gearId}/activity/${activityId}`;
+    }
+
+    UNLINK_GEAR_FROM_ACTIVITY(activityId: GCActivityId, gearId: GCGearId) {
+        return `${this.GC_API}/gear-service/gear/unlink/${gearId}/activity/${activityId}`;
     }
 }
