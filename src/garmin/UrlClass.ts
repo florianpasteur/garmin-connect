@@ -130,8 +130,8 @@ export class UrlClass {
         limit: number = 999,
         myWorkoutsOnly = true,
         sharedWorkoutsOnly = false,
-        orderBy = 'WORKOUT_NAME',
-        orderSeq: 'ASC' | 'DESC' = 'ASC',
+        orderBy = 'UPDATE_DATE',
+        orderSeq: 'ASC' | 'DESC' = 'DESC',
         includeAtp = false
     ) {
         return `${this.GC_API}/workout-service/workouts?start=${start}&limit=${limit}&myWorkoutsOnly=${myWorkoutsOnly}&sharedWorkoutsOnly=${sharedWorkoutsOnly}&orderBy=${orderBy}&orderSeq=${orderSeq}&includeAtp=${includeAtp}`;
