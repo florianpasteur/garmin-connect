@@ -41,6 +41,7 @@ import {
     IActivity
 } from './types/activity';
 import { GearData } from './types/gear';
+import { Workout } from './types/workout';
 
 let config: GCCredentials | undefined = undefined;
 
@@ -584,6 +585,10 @@ export default class GarminConnect {
             this.url.UNLINK_GEAR_FROM_ACTIVITY(activityId, gearId),
             {}
         );
+    }
+
+    async workouts(): Promise<Workout[]> {
+        return this.client.get(this.url.WORKOUTS_LIST());
     }
 
     async get<T>(url: string, data?: any) {

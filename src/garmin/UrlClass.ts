@@ -124,4 +124,16 @@ export class UrlClass {
     UNLINK_GEAR_FROM_ACTIVITY(activityId: GCActivityId, gearId: GCGearId) {
         return `${this.GC_API}/gear-service/gear/unlink/${gearId}/activity/${activityId}`;
     }
+
+    WORKOUTS_LIST(
+        start: number = 1,
+        limit: number = 999,
+        myWorkoutsOnly = true,
+        sharedWorkoutsOnly = false,
+        orderBy = 'WORKOUT_NAME',
+        orderSeq: 'ASC' | 'DESC' = 'ASC',
+        includeAtp = false
+    ) {
+        return `${this.GC_API}/workout-service/workouts?start=${start}&limit=${limit}&myWorkoutsOnly=${myWorkoutsOnly}&sharedWorkoutsOnly=${sharedWorkoutsOnly}&orderBy=${orderBy}&orderSeq=${orderSeq}&includeAtp=${includeAtp}`;
+    }
 }
