@@ -39,11 +39,6 @@ export class Step {
             stepAudioNote: null,
             stepId: index,
             stepOrder: index,
-            stepType: {
-                displayOrder: 3,
-                stepTypeId: 3,
-                stepTypeKey: 'interval'
-            },
             strokeType: {},
             targetType: {
                 displayOrder: 6,
