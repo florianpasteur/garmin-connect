@@ -3,13 +3,13 @@ import { NoTarget, Target } from './target';
 
 export class Step {
     constructor(
-        private type: StepType,
+        private stepType: StepType,
         private duration: Duration = new NoDuration(),
         private target: Target = new NoTarget(),
         private notes: string = ''
     ) {}
 
-    build(stepId: number) {
+    build(index: number) {
         return {
             category: null,
             childStepId: null,
@@ -37,8 +37,8 @@ export class Step {
             secondaryTargetValueUnit: null,
             secondaryZoneNumber: null,
             stepAudioNote: null,
-            stepId: this.type.stepId,
-            stepOrder: stepId,
+            stepId: index,
+            stepOrder: index,
             stepType: {
                 displayOrder: 3,
                 stepTypeId: 3,
@@ -59,6 +59,7 @@ export class Step {
             workoutProvider: null,
             zoneNumber: null,
 
+            ...this.stepType.build(),
             ...this.duration.build(),
             ...this.target.build()
         };
@@ -66,31 +67,22 @@ export class Step {
 }
 
 export class StepType {
-    private constructor(private type: string) {}
+    private constructor(private type: string, private stepId: number) {}
 
-    get stepId() {
-        switch (this.type) {
-            case 'warmup':
-                return 1;
-            case 'interval':
-                return 2;
-            case 'recovery':
-                return 3;
-            case 'rest':
-                return 4;
-            case 'cooldown':
-                return 5;
-            case 'other':
-                return 6;
-            default:
-                throw new Error(`Unknown type ${this.type}`);
-        }
+    build() {
+        return {
+            stepType: {
+                stepTypeId: this.stepId,
+                stepTypeKey: this.type,
+                displayOrder: this.stepId
+            }
+        };
     }
 
-    static WarmUp = new StepType('warmup');
-    static Run = new StepType('interval');
-    static Recovery = new StepType('recovery');
-    static Rest = new StepType('rest');
-    static Cooldown = new StepType('cooldown');
-    static Other = new StepType('other');
+    static WarmUp = new StepType('warmup', 1);
+    static Run = new StepType('interval', 3);
+    static Recovery = new StepType('recovery', 4);
+    static Rest = new StepType('rest', 5);
+    static Cooldown = new StepType('cooldown', 2);
+    static Other = new StepType('other', 7);
 }
