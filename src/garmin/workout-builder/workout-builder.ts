@@ -12,6 +12,7 @@ export class WorkoutBuilder {
 
     addStep(step: Step) {
         this.steps.push(step);
+        return this;
     }
 
     build(): IWorkoutDetail {
