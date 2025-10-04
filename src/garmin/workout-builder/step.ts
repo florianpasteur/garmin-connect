@@ -14,15 +14,6 @@ export class Step {
             category: null,
             childStepId: null,
             description: this.notes,
-            endCondition: {
-                conditionTypeId: 3,
-                conditionTypeKey: 'distance',
-                displayable: true,
-                displayOrder: 3
-            },
-            endConditionCompare: null,
-            endConditionValue: null,
-            endConditionZone: null,
             equipmentType: {
                 displayOrder: null,
                 equipmentTypeId: null,
@@ -40,11 +31,6 @@ export class Step {
             stepId: index,
             stepOrder: index,
             strokeType: {},
-            targetType: {
-                displayOrder: 6,
-                workoutTargetTypeId: 6,
-                workoutTargetTypeKey: 'pace.zone'
-            },
             targetValueOne: null,
             targetValueTwo: null,
             targetValueUnit: null,
