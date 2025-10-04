@@ -328,6 +328,21 @@ export default class GarminConnect {
         return this.client.delete(this.url.WORKOUT(workout.workoutId));
     }
 
+    /**
+     * Schedule a workout by workoutId to a specific date
+     * @param workout - with workoutId
+     * @param scheduleDate - 'YYYY-MM-DD'
+     */
+    async scheduleWorkout(
+        workout: { workoutId: string },
+        scheduleDate: string
+    ) {
+        return this.client.post(
+            this.url.SCHEDULE_WORKOUT(parseInt(workout.workoutId)),
+            { date: scheduleDate }
+        );
+    }
+
     async getSteps(date = new Date()): Promise<number> {
         const dateString = toDateString(date);
 

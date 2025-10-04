@@ -136,4 +136,8 @@ export class UrlClass {
     ) {
         return `${this.GC_API}/workout-service/workouts?start=${start}&limit=${limit}&myWorkoutsOnly=${myWorkoutsOnly}&sharedWorkoutsOnly=${sharedWorkoutsOnly}&orderBy=${orderBy}&orderSeq=${orderSeq}&includeAtp=${includeAtp}`;
     }
+
+    SCHEDULE_WORKOUT(workoutId: number): string {
+        return `${this.GC_API}/workout-service/schedule/${workoutId}`;
+    }
 }
