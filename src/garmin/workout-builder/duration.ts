@@ -4,7 +4,9 @@ export abstract class Duration {
 
 export class NoDuration extends Duration {
     build() {
-        return {};
+        throw new Error(
+            'Please provide an duration for this step (Other than NoDuration).'
+        );
     }
 }
 
@@ -32,7 +34,7 @@ export class TimeDuration extends Duration {
     build() {
         return {
             endCondition: {
-                conditionTypeId: 3,
+                conditionTypeId: 2,
                 conditionTypeKey: 'time',
                 displayable: true,
                 displayOrder: 1

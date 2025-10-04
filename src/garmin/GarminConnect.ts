@@ -275,6 +275,10 @@ export default class GarminConnect {
         );
     }
 
+    async createWorkout(workout: IWorkoutDetail) {
+        return this.client.post<IWorkoutDetail>(this.url.WORKOUT(), workout);
+    }
+
     async addWorkout(
         workout: IWorkoutDetail | Running
     ): Promise<IWorkoutDetail> {

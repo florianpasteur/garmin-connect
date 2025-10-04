@@ -1,10 +1,11 @@
 import { Step } from './step';
 import { WorkoutType } from './workout-type';
+import { IWorkoutDetail } from '../types';
 
 export class WorkoutBuilder {
     private steps: Step[] = [];
 
-    private constructor(
+    constructor(
         private readonly workoutType: WorkoutType,
         private workoutName: string
     ) {}
@@ -13,7 +14,7 @@ export class WorkoutBuilder {
         this.steps.push(step);
     }
 
-    build() {
+    build(): IWorkoutDetail {
         return {
             ...this.workoutType.build(),
             subSportType: null,

@@ -2,7 +2,7 @@ export abstract class Target {
     abstract build(): any;
 }
 
-export class NoTarget {
+export class NoTarget extends Target {
     build(): any {
         return {
             targetType: {
@@ -15,13 +15,19 @@ export class NoTarget {
 }
 
 export class PaceTarget extends Target {
+    /**
+     * Create a pace target
+     * @param minPace - in seconds per meter
+     * @param maxPace - in seconds per meter
+     */
     constructor(private minPace: number, private maxPace: number) {
         super();
     }
 
     static pace(paceMinutes: number, paceSeconds: number, margin: number = 0) {
-        const pace = paceMinutes * 60 + paceSeconds;
-        return new PaceTarget(pace - margin, pace + margin);
+        const minPace = paceMinutes * 60 + paceSeconds - margin;
+        const maxPace = paceMinutes * 60 + paceSeconds + margin;
+        return new PaceTarget(1000 / minPace, 1000 / maxPace);
     }
 
     build(): any {
