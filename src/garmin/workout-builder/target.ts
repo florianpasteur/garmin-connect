@@ -25,8 +25,8 @@ export class PaceTarget extends Target {
     }
 
     static pace(paceMinutes: number, paceSeconds: number, margin: number = 0) {
-        const minPace = paceMinutes * 60 + paceSeconds - margin;
-        const maxPace = paceMinutes * 60 + paceSeconds + margin;
+        const minPace = paceMinutes * 60 + paceSeconds + margin;
+        const maxPace = paceMinutes * 60 + paceSeconds - margin;
         return new PaceTarget(1000 / minPace, 1000 / maxPace);
     }
 
