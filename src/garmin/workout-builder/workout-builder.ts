@@ -1,16 +1,17 @@
-import { Step } from './step';
+import { Step, StepRepeat } from './step';
 import { WorkoutType } from './workout-type';
 import { IWorkoutDetail } from '../types';
 
 export class WorkoutBuilder {
-    private steps: Step[] = [];
+    private steps: (Step | StepRepeat)[] = [];
 
     constructor(
         private readonly workoutType: WorkoutType,
-        private workoutName: string
+        private workoutName: string,
+        private workoutDescription: string = ''
     ) {}
 
-    addStep(step: Step) {
+    addStep(step: Step | StepRepeat) {
         this.steps.push(step);
         return this;
     }
@@ -20,6 +21,7 @@ export class WorkoutBuilder {
             ...this.workoutType.build(),
             subSportType: null,
             workoutName: this.workoutName,
+            description: this.workoutDescription,
             estimatedDistanceUnit: { unitKey: null },
             workoutSegments: [
                 {
