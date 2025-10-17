@@ -4,7 +4,7 @@ export function convertGpxImportResponseToGpxSaveRequest(importResponse: any) {
         hasTurnDetectionDisabled: false,
         geoPoints: importResponse.geoPoints,
         courseLines: [],
-        coursePoints: [],
+        coursePoints: importResponse.coursePoints,
         startPoint: importResponse.geoPoints[0],
         elapsedSeconds: null,
         openStreetMap: false,
