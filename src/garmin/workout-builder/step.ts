@@ -47,39 +47,6 @@ export class Step {
     }
 }
 
-export class StepRepeat {
-    constructor(private count: number, private steps: Step[] = []) {}
-
-    addStep(step: Step) {
-        this.steps.push(step);
-        return this;
-    }
-
-    build(startIndex: number) {
-        return {
-            stepId: 6,
-            stepOrder: 1,
-            stepType: {
-                stepTypeId: 6,
-                stepTypeKey: 'repeat',
-                displayOrder: 6
-            },
-            numberOfIterations: 2,
-            smartRepeat: false,
-            childStepId: 1,
-            workoutSteps: this.steps.map((step) => step.build(startIndex++)),
-            endCondition: {
-                conditionTypeId: 7,
-                conditionTypeKey: 'iterations',
-                displayOrder: 7,
-                displayable: false
-            },
-            type: 'RepeatGroupDTO',
-            skipLastRestStep: null
-        };
-    }
-}
-
 export class StepType {
     private constructor(private type: string, private stepId: number) {}
 
