@@ -16,7 +16,7 @@ const {
     NoTarget,
     StepType,
     WorkoutType
-} = require('../dist/index');
+} = require('garmin-connect');
 
 (async function () {
     const GARMIN_USERNAME = process.env.GARMIN_USERNAME;
