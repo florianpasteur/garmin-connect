@@ -141,16 +141,16 @@ export class UrlClass {
         return `${this.GC_API}/workout-service/schedule/${workoutId}`;
     }
 
-    IMPORT_GPX_FILE() {
-        return `${this.GC_API}/gc-api/course-service/course/import`;
+    get IMPORT_GPX_FILE() {
+        return `${this.GC_API}/course-service/course/import`;
     }
 
     EXPORT_COURSE_GPX_FILE(courseId: number) {
-        return `${this.GC_API}/gc-api/course-service/course/${courseId}/export/gpx`;
+        return `${this.GC_API}/course-service/course/${courseId}/export/gpx`;
     }
 
-    CREATE_COURSE_GPX_FILE() {
-        return `${this.GC_API}/gc-api/course-service/course`;
+    get CREATE_COURSE_GPX_FILE() {
+        return `${this.GC_API}/course-service/course`;
     }
 
     UPDATE_COURSE_GPX_FILE(courseId: number) {

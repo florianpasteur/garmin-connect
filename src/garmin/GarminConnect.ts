@@ -610,6 +610,29 @@ export default class GarminConnect {
         return this.client.get(this.url.WORKOUTS_LIST());
     }
 
+    async importGpx(fileName: string, fileContent: string) {
+        const form = new FormData();
+        form.append('file', fileContent, {
+            filename: fileName,
+            contentType: 'application/octet-stream'
+        });
+
+        return await this.client.post(this.url.IMPORT_GPX_FILE, form, {
+            headers: {
+                'Content-Type': form.getHeaders()['content-type'],
+                'Content-Length': form.getLengthSync()
+            }
+        });
+    }
+
+    async createCourse(courseBody: any) {
+        return await this.client.post(
+            this.url.CREATE_COURSE_GPX_FILE,
+            courseBody,
+            {}
+        );
+    }
+
     async get<T>(url: string, data?: any) {
         const response = await this.client.get(url, data);
         return response as T;
