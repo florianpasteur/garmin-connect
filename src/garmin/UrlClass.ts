@@ -140,4 +140,20 @@ export class UrlClass {
     SCHEDULE_WORKOUT(workoutId: number): string {
         return `${this.GC_API}/workout-service/schedule/${workoutId}`;
     }
+
+    IMPORT_GPX_FILE() {
+        return `${this.GC_API}/gc-api/course-service/course/import`;
+    }
+
+    EXPORT_COURSE_GPX_FILE(courseId: number) {
+        return `${this.GC_API}/gc-api/course-service/course/${courseId}/export/gpx`;
+    }
+
+    CREATE_COURSE_GPX_FILE() {
+        return `${this.GC_API}/gc-api/course-service/course`;
+    }
+
+    UPDATE_COURSE_GPX_FILE(courseId: number) {
+        return `${this.GC_API}/gc-api/course-service/course/${courseId}`;
+    }
 }
