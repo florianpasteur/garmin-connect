@@ -22,6 +22,7 @@ import {
     IUserSettings,
     IWorkout,
     IWorkoutDetail,
+    ListCoursesResponse,
     UploadFileType,
     UploadFileTypeTypeValue
 } from './types';
@@ -650,6 +651,19 @@ export default class GarminConnect {
                 coursePoints
             ),
             {}
+        );
+    }
+
+    async listCourses(): Promise<ListCoursesResponse> {
+        return this.client.get<ListCoursesResponse>(this.url.LIST_COURSES);
+    }
+
+    async exportCourseAsGpx(courseId: number): Promise<string> {
+        return this.client.get<string>(
+            this.url.EXPORT_COURSE_GPX_FILE(courseId),
+            {
+                responseType: 'text'
+            }
         );
     }
 

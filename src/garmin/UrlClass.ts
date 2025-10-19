@@ -146,7 +146,7 @@ export class UrlClass {
     }
 
     EXPORT_COURSE_GPX_FILE(courseId: number) {
-        return `${this.GC_API}/course-service/course/${courseId}/export/gpx`;
+        return `${this.GC_API}/course-service/course/gpx/${courseId}`;
     }
 
     get CREATE_COURSE_GPX_FILE() {
@@ -154,6 +154,10 @@ export class UrlClass {
     }
 
     UPDATE_COURSE_GPX_FILE(courseId: number) {
-        return `${this.GC_API}/gc-api/course-service/course/${courseId}`;
+        return `${this.GC_API}/course-service/course/${courseId}`;
+    }
+
+    get LIST_COURSES() {
+        return `${this.GC_API}/web-gateway/course/owner/`;
     }
 }

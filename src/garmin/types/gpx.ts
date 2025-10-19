@@ -112,3 +112,67 @@ export interface GeoPoint {
     distance: number;
     timestamp: number | null;
 }
+
+export interface ListCoursesResponse {
+    coursesForUser: {
+        courseId: number;
+        userProfileId: number;
+        displayName: string;
+        userGroupId: number | null;
+        geoRoutePk: number | null;
+        activityType: {
+            typeId: number;
+            typeKey: string;
+            parentTypeId: number;
+            isHidden: boolean;
+            restricted: boolean;
+            trimmable: boolean;
+        };
+        courseName: string;
+        courseDescription: string | null;
+        createdDate: number;
+        updatedDate: number;
+
+        privacyRule: {
+            typeId: number;
+            typeKey: string;
+        };
+        distanceInMeters: number;
+        elevationGainInMeters: number;
+        elevationLossInMeters: number;
+        startLatitude: number;
+        startLongitude: number;
+        speedInMetersPerSecond: number;
+        sourceTypeId: number;
+        sourcePk: number | null;
+        elapsedSeconds: number | null;
+        coordinateSystem: string;
+        originalCoordinateSystem: string;
+        consumer: string;
+        elevationSource: number;
+        hasShareableEvent: boolean;
+        hasPaceBand: boolean;
+        hasPowerGuide: boolean;
+        favorite: boolean;
+        hasTurnDetectionDisabled: boolean;
+        curatedCourseId: number | null;
+        startNote: string | null;
+        finishNote: string | null;
+        cutoffDuration: number | null;
+        activityTypeId: {
+            typeId: number;
+            typeKey: string;
+            parentTypeId: number;
+            isHidden: boolean;
+            restricted: boolean;
+            trimmable: boolean;
+        };
+        public: boolean;
+        createdDateFormatted: string;
+        updatedDateFormatted: string;
+        applicationName: string;
+        companyName: string;
+        companyWebsite: string;
+        imageURL: string;
+    }[];
+}

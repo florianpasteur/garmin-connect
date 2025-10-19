@@ -39,4 +39,16 @@ const GPX_FILE_FOLDER = './assets/';
         createCourseResponse.courseId,
         `https://connect.garmin.com/modern/course/${createCourseResponse.courseId}`
     );
+
+    const listCourses = await GCClient.listCourses();
+    console.log(
+        'Last course:',
+        listCourses.coursesForUser[0].courseId,
+        listCourses.coursesForUser[0].courseName
+    );
+
+    const downloadGpx = await GCClient.exportCourseAsGpx(
+        createCourseResponse.courseId
+    );
+    console.log('Downloaded GPX size:', downloadGpx.length);
 })();
