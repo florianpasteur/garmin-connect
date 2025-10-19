@@ -42,6 +42,13 @@ import {
 } from './types/activity';
 import { GearData } from './types/gear';
 import { Workout } from './types/workout';
+import {
+    CoursePoint,
+    GeoPoint,
+    GpxActivityType,
+    ImportedGpxResponse
+} from './types/gpx';
+import { courseRequestTemplate } from './common/GpxUtils';
 
 let config: GCCredentials | undefined = undefined;
 
@@ -610,7 +617,10 @@ export default class GarminConnect {
         return this.client.get(this.url.WORKOUTS_LIST());
     }
 
-    async importGpx(fileName: string, fileContent: string) {
+    async importGpx(
+        fileName: string,
+        fileContent: string
+    ): Promise<ImportedGpxResponse> {
         const form = new FormData();
         form.append('file', fileContent, {
             filename: fileName,
@@ -625,10 +635,20 @@ export default class GarminConnect {
         });
     }
 
-    async createCourse(courseBody: any) {
+    async createCourse(
+        activityType: GpxActivityType,
+        courseName: string,
+        geoPoints: GeoPoint[],
+        coursePoints: CoursePoint[] = []
+    ) {
         return await this.client.post(
             this.url.CREATE_COURSE_GPX_FILE,
-            courseBody,
+            courseRequestTemplate(
+                activityType,
+                courseName,
+                geoPoints,
+                coursePoints
+            ),
             {}
         );
     }

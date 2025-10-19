@@ -1,16 +1,28 @@
-export function convertGpxImportResponseToGpxSaveRequest(importResponse: any) {
+import {
+    CoursePoint,
+    CourseRequest,
+    GeoPoint,
+    GpxActivityType
+} from '../types';
+
+export function courseRequestTemplate(
+    activityType: GpxActivityType,
+    courseName: string,
+    geoPoints: GeoPoint[],
+    coursePoints: CoursePoint[] = []
+): CourseRequest {
     return {
-        activityTypePk: 1,
+        activityTypePk: activityType,
         hasTurnDetectionDisabled: false,
-        geoPoints: importResponse.geoPoints,
+        geoPoints: geoPoints,
         courseLines: [],
-        coursePoints: importResponse.coursePoints,
-        startPoint: importResponse.geoPoints[0],
+        coursePoints: coursePoints,
+        startPoint: geoPoints[0],
         elapsedSeconds: null,
         openStreetMap: false,
         coordinateSystem: 'WGS84',
         rulePK: 2,
-        courseName: importResponse.courseName,
+        courseName: courseName,
         matchedToSegments: false,
         includeLaps: false,
         hasPaceBand: false,

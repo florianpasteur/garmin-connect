@@ -472,3 +472,10 @@ export interface IDailyStepsType {
     totalDistance: number;
     totalSteps: number;
 }
+
+// Export other types
+export * from './activity';
+export * from './gear';
+export * from './gpx';
+export * from './sleep';
+export * from './workout';

@@ -1,7 +1,4 @@
-const {
-    GarminConnect,
-    convertGpxImportResponseToGpxSaveRequest
-} = require('../dist/index');
+const { GarminConnect } = require('../dist/index');
 const fs = require('fs/promises');
 const path = require('path');
 
@@ -30,18 +27,16 @@ const GPX_FILE_FOLDER = './assets/';
 
     const response = await GCClient.importGpx(GPX_FILE_NAME, fileContent);
 
-    console.log(response);
-
-    const courseBody = convertGpxImportResponseToGpxSaveRequest(response);
-
-    const createCourseResponse = await GCClient.createCourse(courseBody);
-
-    await fs.writeFile(
-        GPX_FILE_FOLDER + 'response.json',
-        JSON.stringify(response, null, 2)
+    const createCourseResponse = await GCClient.createCourse(
+        1,
+        response.courseName,
+        response.geoPoints,
+        response.coursePoints
     );
-    await fs.writeFile(
-        GPX_FILE_FOLDER + 'createCourseResponse.json',
-        JSON.stringify(createCourseResponse, null, 2)
+
+    console.log(
+        'Course created with id:',
+        createCourseResponse.courseId,
+        `https://connect.garmin.com/modern/course/${createCourseResponse.courseId}`
     );
 })();
