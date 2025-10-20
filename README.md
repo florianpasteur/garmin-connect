@@ -11,7 +11,12 @@ TODO:
 -   [x] Oauth1,Oauth2 token import and export.
 -   [x] Download Activity, countActivities, getActivities, getActivity, getUserProfile, getUserSettings
 -   [x] Upload Activity, delete Activity
--   [ ] Implementation of other methods, such as Badge,Workout,Gear etc
+-   [ ] Implementation of other methods:
+-   [ ] Badge
+-   [x] Gear
+-   [x] Workout
+-   [x] Course
+-   ...etc
 -   [ ] Handle MFA
 -   [x] Handle Account locked
 -   [ ] Unit test
