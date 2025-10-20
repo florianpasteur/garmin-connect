@@ -1,5 +1,7 @@
 # garmin-connect
 
+This is a fork of https://github.com/Pythe1337N/garmin-connect
+
 ## v1.6.0 refactor
 
 TODO:
