@@ -1,6 +1,6 @@
 {
     "name": "garmin-connect",
-    "version": "1.6.2",
+    "version": "1.6.3",
     "description": "Makes it simple to interface with Garmin Connect to get or set any data point",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Pythe1337N/garmin-connect.git"
+        "url": "git+https://github.com/florianpasteur/garmin-connect.git"
     },
     "keywords": [
         "garmin",
@@ -48,9 +48,9 @@
         "ts-node": "^10.9.2",
         "typescript": "^4.9.4"
     },
-    "homepage": "https://github.com/Pythe1337N/garmin-connect#readme",
+    "homepage": "https://github.com/florianpasteur/garmin-connect#readme",
     "bugs": {
-        "url": "https://github.com/Pythe1337N/garmin-connect/issues"
+        "url": "https://github.com/florianpasteur/garmin-connect/issues"
     },
     "runkitExampleFilename": "./examples/example.js",
     "dependencies": {
