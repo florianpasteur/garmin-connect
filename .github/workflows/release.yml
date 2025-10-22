@@ -3,7 +3,7 @@ name: Release Package
 on:
     push:
         branches:
-            - main
+            - master
         # Prevent triggering on tag pushes
         tags-ignore:
             - 'v*'
@@ -35,18 +35,18 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Bump minor version
+            - name: Bump version
               run: |
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
-                  npm version minor -m "chore(release): bump version to %s"
+                  npm version patch -m "chore(release): bump version to %s"
 
             - name: Build package
               run: npm run build
 
             - name: Push changes and tags
               run: |
-                  git push origin main
+                  git push origin master
                   git push origin --tags
 
             - name: Publish to npm
