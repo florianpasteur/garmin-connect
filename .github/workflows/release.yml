@@ -3,7 +3,7 @@ name: Release Package
 on:
     push:
         branches:
-            - master
+            - florian
         # Prevent triggering on tag pushes
         tags-ignore:
             - 'v*'
@@ -46,7 +46,7 @@ jobs:
 
             - name: Push changes and tags
               run: |
-                  git push origin master
+                  git push origin florian
                   git push origin --tags
 
             - name: Publish to npm
