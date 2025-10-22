@@ -1,0 +1,55 @@
+name: Release Package
+
+on:
+    push:
+        branches:
+            - main
+        # Prevent triggering on tag pushes
+        tags-ignore:
+            - 'v*'
+
+permissions:
+    contents: write
+    packages: write
+    id-token: write
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        # Skip if the commit message contains 'chore(release)'
+        if: "!contains(github.event.head_commit.message, 'chore(release)')"
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # needed to push tags
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Bump minor version
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  npm version minor -m "chore(release): bump version to %s"
+
+            - name: Build package
+              run: npm run build
+
+            - name: Push changes and tags
+              run: |
+                  git push origin main
+                  git push origin --tags
+
+            - name: Publish to npm
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: npm publish
