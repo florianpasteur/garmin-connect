@@ -50,6 +50,7 @@ import {
     ImportedGpxResponse
 } from './types/gpx';
 import { courseRequestTemplate } from './common/GpxUtils';
+import { MonthCalendar, YearCalendar } from './types/calendar';
 
 let config: GCCredentials | undefined = undefined;
 
@@ -664,6 +665,28 @@ export default class GarminConnect {
             {
                 responseType: 'text'
             }
+        );
+    }
+
+    async getYearCalendarEvents(year: number): Promise<YearCalendar> {
+        return this.client.get<any>(this.url.CALENDAR_YEAR(year));
+    }
+
+    async getMonthCalendarEvents(
+        year: number,
+        month: number
+    ): Promise<MonthCalendar> {
+        return this.client.get<any>(this.url.CALENDAR_MONTH(year, month));
+    }
+
+    async getWeekCalendarEvents(
+        year: number,
+        month: number,
+        day: number,
+        firstDayOfWeek?: number
+    ): Promise<any> {
+        return this.client.get<any>(
+            this.url.CALENDAR_WEEK(year, month, day, firstDayOfWeek)
         );
     }
 

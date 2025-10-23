@@ -479,3 +479,4 @@ export * from './gear';
 export * from './gpx';
 export * from './sleep';
 export * from './workout';
+export * from './calendar';

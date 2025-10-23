@@ -160,4 +160,21 @@ export class UrlClass {
     get LIST_COURSES() {
         return `${this.GC_API}/web-gateway/course/owner/`;
     }
+
+    CALENDAR_YEAR(year: number) {
+        return `${this.GC_API}/calendar-service/year/${year}`;
+    }
+
+    CALENDAR_MONTH(year: number, month: number) {
+        return `${this.GC_API}/calendar-service/year/${year}/month/${month}`;
+    }
+
+    CALENDAR_WEEK(
+        year: number,
+        month: number,
+        day: number,
+        firstDateOfWeek: number = 1
+    ) {
+        return `${this.GC_API}/calendar-service/year/${year}/month/${month}/day/${day}/start/${firstDateOfWeek}`;
+    }
 }
