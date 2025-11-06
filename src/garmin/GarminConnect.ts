@@ -26,7 +26,6 @@ import {
     UploadFileType,
     UploadFileTypeTypeValue
 } from './types';
-import Running from './workouts/Running';
 import {
     calculateTimeDifference,
     getLocalTimestamp,
@@ -286,50 +285,6 @@ export default class GarminConnect {
 
     async createWorkout(workout: IWorkoutDetail) {
         return this.client.post<Workout>(this.url.WORKOUT(), workout);
-    }
-
-    async addWorkout(
-        workout: IWorkoutDetail | Running
-    ): Promise<IWorkoutDetail> {
-        if (!workout) throw new Error('Missing workout');
-
-        if (workout instanceof Running) {
-            if (workout.isValid()) {
-                const data = { ...workout.toJson() };
-                if (!data.description) {
-                    data.description = 'Added by garmin-connect for Node.js';
-                }
-                return this.client.post<IWorkoutDetail>(
-                    this.url.WORKOUT(),
-                    data
-                );
-            }
-        }
-
-        const newWorkout = _.omit(workout, [
-            'workoutId',
-            'ownerId',
-            'updatedDate',
-            'createdDate',
-            'author'
-        ]);
-        if (!newWorkout.description) {
-            newWorkout.description = 'Added by garmin-connect for Node.js';
-        }
-        // console.log('addWorkout - newWorkout:', newWorkout)
-        return this.client.post<IWorkoutDetail>(this.url.WORKOUT(), newWorkout);
-    }
-
-    async addRunningWorkout(
-        name: string,
-        meters: number,
-        description: string
-    ): Promise<IWorkoutDetail> {
-        const running = new Running();
-        running.name = name;
-        running.distance = meters;
-        running.description = description;
-        return this.addWorkout(running);
     }
 
     async deleteWorkout(workout: { workoutId: string }) {
