@@ -107,6 +107,10 @@ GCClient.onSessionChange((session) => {
 });
 ```
 
+## Supported methods
+
+Below the list of supported methods by this library. Please also explore the [examples](./examples) folder for more usage examples and the typescript to find undocumented methods.
+
 ### `getActivities(start: number, limit: number, activityType?: ActivityType, subActivityType?: ActivitySubType): Promise<IActivity[]>`
 
 Retrieves a list of activities based on specified parameters.
@@ -315,7 +319,7 @@ const weightInPounds = await GCClient.getDailyWeightInPounds(
 );
 ```
 
-## `getDailyHydration(date?: Date): Promise<number>`
+### `getDailyHydration(date?: Date): Promise<number>`
 
 Retrieves the daily hydration data and converts it from milliliters to ounces.
 
@@ -390,7 +394,7 @@ Retrieves daily heart rate data for a given date.
 const heartRateData = await GCClient.getHeartRate(new Date('2020-03-24'));
 ```
 
-## Delete an activity
+### Delete an activity
 
 Deletes an activty.
 
