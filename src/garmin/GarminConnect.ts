@@ -668,10 +668,19 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Retrieves calendar events for a specific year.
+     * @param year {number} - The year for which to retrieve calendar events.
+     */
     async getYearCalendarEvents(year: number): Promise<YearCalendar> {
         return this.client.get<any>(this.url.CALENDAR_YEAR(year));
     }
 
+    /**
+     * Retrieves calendar events for a specific month and year.
+     * @param year {number} - The year for which to retrieve calendar events.
+     * @param month {number} - The month (0-11) for which to retrieve calendar events.
+     */
     async getMonthCalendarEvents(
         year: number,
         month: number
@@ -679,6 +688,13 @@ export default class GarminConnect {
         return this.client.get<any>(this.url.CALENDAR_MONTH(year, month));
     }
 
+    /**
+     * Retrieves calendar events for a specific week containing the given date.
+     * @param year {number} - The year of the date.
+     * @param month {number} - The month (0-11) of the date.
+     * @param day {number} - The day of the first day of the week.
+     * @param firstDayOfWeek {number} - Optional first day of the week, default is 1
+     */
     async getWeekCalendarEvents(
         year: number,
         month: number,
@@ -688,6 +704,23 @@ export default class GarminConnect {
         return this.client.get<any>(
             this.url.CALENDAR_WEEK(year, month, day, firstDayOfWeek)
         );
+    }
+
+    /**
+     * Renames an activity with the given activityId to the newName.
+     * @param activityId
+     * @param newName
+     */
+    async renameActivity(
+        activityId: GCActivityId,
+        newName: string
+    ): Promise<void> {
+        if (!activityId) throw new Error('Missing activityId');
+        if (!newName) throw new Error('Missing newName');
+
+        await this.client.put<void>(this.url.ACTIVITY_BY_ID(activityId), {
+            activityName: newName
+        });
     }
 
     async get<T>(url: string, data?: any) {

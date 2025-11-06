@@ -85,6 +85,7 @@ export interface MonthCalendar {
         decoDive: boolean | null;
         itemType: string;
         title: string | null;
+        // Formatted as 'YYYY-MM-DD'
         date: string;
         weight?: number | null;
         difference?: number | null;
@@ -170,6 +171,7 @@ export interface WeekCalendar {
         decoDive: boolean | null;
         itemType: string;
         title: string | null;
+        // Formatted as 'YYYY-MM-DD'
         date: string;
         weight?: number | null;
         difference?: number | null;
