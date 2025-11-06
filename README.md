@@ -448,29 +448,48 @@ await GCClient.updateWeight(undefined, 202.9, 'America/Los_Angeles');
 
 ### Add workout
 
-To add a custom workout, use the `addWorkout` or more specifically `addRunningWorkout`.
+To create a workout, you can use the `WorkoutBuilder` class to create a workout object and then use the method to add your workout.
+
+See the example in the [example-workout.js](examples/example-workout.js) for more complex workouts.
 
 ```js
-GCClient.addRunningWorkout('My 5k run', 5000, 'Some description');
+const wb = new WorkoutBuilder(
+    WorkoutType.Running,
+    'Workout running ' + new Date().toISOString()
+);
+
+/**
+ * There are multiple StepTypes: WarmUp, Run, Recovery, Rest, Cooldown, Other
+ */
+wb.addStep(
+    new Step(
+        StepType.Run,
+        TimeDuration.fromSeconds(45),
+        new NoTarget(),
+        'Comment for the step: Run for 45 seconds'
+    )
+);
+
+//
+GCClient.addWorkout(wb.build());
 ```
 
-Will add a running workout of 5km called 'My 5k run' and return a JSON object representing the saved workout.
+Alternatively, you can create a workout by providing a raw workout object.
 
 ### Schedule workout
 
-To add a workout to your calendar, first find your workout and then add it to a specific date.
+To add a workout to your calendar, provide the workout id and the date to schedule it on.
+The date format must be `'YYYY-MM-DD'`.
 
 ```js
 const workouts = await GCClient.getWorkouts();
 const id = workouts[0].workoutId;
-GCClient.scheduleWorkout({ workoutId: id }, new Date('2020-03-24'));
+GCClient.scheduleWorkout({ workoutId: id }, new Date('2025-12-01'));
 ```
-
-This will add the workout to a specific date in your calendar and make it show up automatically if you're using any of the Garmin watches.
 
 ### Delete workout
 
-Deleting a workout is very similar to [scheduling](#schedule-workout) one.
+To delete a workout provide the workout id.
 
 ```js
 const workouts = await GCClient.getWorkouts();
