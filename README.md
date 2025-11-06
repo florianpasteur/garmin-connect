@@ -41,6 +41,8 @@ const userProfile = await GCClient.getUserProfile();
 
 Now you can check `userProfile.userName` to verify that your login was successful.
 
+You can find more examples in the `examples` folder.
+
 ## Reusing your session
 
 ### Save token to file and reuse it.
@@ -105,62 +107,6 @@ GCClient.onSessionChange((session) => {
 });
 ```
 
-### Login fallback
-
-To make sure to use a stored session if possible, but fallback to regular login, one can use the `restoreOrLogin` method.
-The arguments `username` and `password` are both optional and the regular `.login()` will be
-called if session restore fails.
-
-```js
-await GCClient.restoreOrLogin(session, username, password);
-```
-
-## Events
-
--   `sessionChange` will trigger on a change in the current `sessionJson`
-
-To attach a listener to an event, use the `.on()` method.
-
-```js
-GCClient.on('sessionChange', (session) => console.log(session));
-```
-
-There's currently no way of removing listeners.
-
-## Reading data
-
-### User info is not implemented yet. // TODO: Implement this function
-
-Receive basic user information
-
-```js
-GCClient.getUserInfo();
-```
-
-### Social Profile is not implemented yet. // TODO: Implement this function
-
-Receive social user information
-
-```js
-GCClient.getSocialProfile();
-```
-
-### Social Connections is not implemented yet. // TODO: Implement this function
-
-Get a list of all social connections
-
-```js
-GCClient.getSocialConnections();
-```
-
-### Device info is not implemented yet. // TODO: Implement this function
-
-Get a list of all registered devices including model numbers and firmware versions.
-
-```js
-GCClient.getDeviceInfo();
-```
-
 ### `getActivities(start: number, limit: number, activityType?: ActivityType, subActivityType?: ActivitySubType): Promise<IActivity[]>`
 
 Retrieves a list of activities based on specified parameters.
@@ -207,17 +153,6 @@ Retrieves details for a specific activity based on the provided `activityId`.
 const activityDetails = await GCClient.getActivity({
     activityId: 'exampleActivityId'
 });
-```
-
-### News Feed is not implemented yet. // TODO: Implement this function
-
-To get a list of activities in your news feed, use the `getNewsFeed` method. This function takes two arguments, _start_ and _limit_, which is used for pagination. Both are optional and will default to whatever Garmin Connect is using. To be sure to get all activities, use this correctly.
-
-```js
-// Get the news feed with a default length with most recent activities
-GCClient.getNewsFeed();
-// Get activities in feed, 10 through 15. (start 10, limit 5)
-GCClient.getNewsFeed(10, 5);
 ```
 
 ### Download original activity data
@@ -455,18 +390,7 @@ Retrieves daily heart rate data for a given date.
 const heartRateData = await GCClient.getHeartRate(new Date('2020-03-24'));
 ```
 
-## Modifying data
-
-### Update activity is not implemented yet. // TODO: Implement this function
-
-```js
-const activities = await GCClient.getActivities(0, 1);
-const activity = activities[0];
-activity['activityName'] = 'The Updated Name';
-await GCClient.updateActivity(activity);
-```
-
-### Delete an activity
+## Delete an activity
 
 Deletes an activty.
 
@@ -578,24 +502,3 @@ GCClient.getHeartRate();
 ```
 
 Notice how the client will keep track of the url's, your user information as well as keeping the session alive.
-
-## Limitations
-
-Many responses from Garmin Connect are missing type definitions and defaults to `unknown`. Feel free to add types by opening a pull request.
-
-For now, this library only supports the following:
-
--   Get user info
--   Get social user info
--   Get heart rate
--   Set body weight
--   Get list of workouts
--   Add new workouts
--   Add workouts to you calendar
--   Remove previously added workouts
--   Get list of activities
--   Get details about one specific activity
--   Get the step count
--   Get earned badges
--   Get available badges
--   Get details about one specific badge
