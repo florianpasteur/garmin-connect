@@ -94,7 +94,7 @@ GCClient.loadTokenByFile('/path/to/save/tokens');
 const oauth1 = GCClient.client.oauth1Token;
 const oauth2 = GCClient.client.oauth2Token;
 // save to db or other storage
-...
+// ...
 ```
 
 Reuse token:
