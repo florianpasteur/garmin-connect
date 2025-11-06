@@ -195,6 +195,12 @@ export default class GarminConnect {
         });
     }
 
+    /**
+     * Download activity original data file
+     * @param activity - with activityId
+     * @param dir - directory to save the file
+     * @param type - 'zip' | 'gpx' | 'tcx' | 'kml' (default: 'zip')
+     */
     async downloadOriginalActivityData(
         activity: { activityId: GCActivityId },
         dir: string,
@@ -235,6 +241,11 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Uploads an activity file
+     * @param file
+     * @param format - 'fit' | 'gpx' | 'tcx'
+     */
     async uploadActivity(
         file: string,
         format: UploadFileTypeTypeValue = 'fit'
@@ -259,6 +270,11 @@ export default class GarminConnect {
         return response;
     }
 
+    /**
+     * Deletes an activity by activityId
+     * @param activity - with activityId
+     * @returns void
+     */
     async deleteActivity(activity: {
         activityId: GCActivityId;
     }): Promise<void> {
@@ -266,6 +282,11 @@ export default class GarminConnect {
         await this.client.delete<void>(this.url.ACTIVITY + activity.activityId);
     }
 
+    /**
+     * Gets the list of workouts
+     * @param start
+     * @param limit
+     */
     async getWorkouts(start: number, limit: number): Promise<IWorkout[]> {
         return this.client.get<IWorkout[]>(this.url.WORKOUTS, {
             params: {
@@ -274,6 +295,12 @@ export default class GarminConnect {
             }
         });
     }
+
+    /**
+     * Gets the workout detail by workoutId
+     * @param workout
+     * @returns workout detail - IWorkoutDetail
+     */
     async getWorkoutDetail(workout: {
         workoutId: string;
     }): Promise<IWorkoutDetail> {
@@ -283,10 +310,19 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Creates a new workout
+     * Use workoutBuilder to create the workout object
+     * @param workout - workout detail
+     */
     async createWorkout(workout: IWorkoutDetail) {
         return this.client.post<Workout>(this.url.WORKOUT(), workout);
     }
 
+    /**
+     * Deletes a workout by workoutId
+     * @param workout - with workoutId
+     */
     async deleteWorkout(workout: { workoutId: string }) {
         if (!workout.workoutId) throw new Error('Missing workout');
         return this.client.delete(this.url.WORKOUT(workout.workoutId));
