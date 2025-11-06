@@ -1,40 +1,14 @@
 # garmin-connect
 
-This is a fork of https://github.com/Pythe1337N/garmin-connect
+This is a fork of https://github.com/Pythe1337N/garmin-connect which was inspired by [https://github.com/matin/garth](https://github.com/matin/garth). Many thanks to contributors.
 
-## v1.6.0 refactor
-
-TODO:
-
--   [x] New HttpClient class
--   [x] Login and get user token
--   [x] Garmin URLs works with `garmin.cn` and `garmin.com`
--   [x] Auto refresh Ouath2 token
--   [x] Oauth1,Oauth2 token import and export.
--   [x] Download Activity, countActivities, getActivities, getActivity, getUserProfile, getUserSettings
--   [x] Upload Activity, delete Activity
--   [ ] Implementation of other methods:
--   [ ] Badge
--   [x] Gear
--   [x] Workout
--   [x] Course
--   ...etc
--   [ ] Handle MFA
--   [x] Handle Account locked
--   [ ] Unit test
--   [ ] Listeners
-
-If something is not working, please check [https://connect.garmin.com/status/](https://connect.garmin.com/status/) first.
-
-Currently, most of previous features are working, but some of Rest API are not added, such as `Gear`,`Workout`,`Badge` etc. So if you need these features, please add a PR.
-
-All of above work inspired by [https://github.com/matin/garth](https://github.com/matin/garth). Many thanks.
+I created this fork to quickly deploy new features for myself.
 
 ---
 
-A powerful JavaScript library for connecting to Garmin Connect for sending and receiving health and workout data. It comes with some predefined methods to get and set different kinds of data for your Garmin account, but also have the possibility to make [custom requests](#custom-requests) `GET`, `POST` and `PUT` are currently supported. This makes it easy to implement whatever may be missing to suite your needs.
+A powerful JavaScript library for connecting to Garmin Connect for interacting with Garmin connect data. It comes with some predefined methods to get and set different kinds of data for your Garmin account, but also have the possibility to make [custom requests](#custom-requests) `GET`, `POST` and `PUT` are currently supported. This makes it easy to implement whatever may be missing to suite your needs.
 
-## Prerequisites
+## Authentification
 
 This library will require you to add a configuration file to your project root called `garmin.config.json` containing your username and password for the Garmin Connect service.
 
@@ -48,13 +22,13 @@ This library will require you to add a configuration file to your project root c
 ## How to install
 
 ```shell
-$ npm install garmin-connect
+$ npm install @flow-js/garmin-connect
 ```
 
 ## How to use
 
 ```js
-const { GarminConnect } = require('garmin-connect');
+const { GarminConnect } = require('@flow-js/garmin-connect`');
 // Create a new Garmin Connect Client
 const GCClient = new GarminConnect({
     username: 'my.email@example.com',
@@ -67,7 +41,7 @@ const userProfile = await GCClient.getUserProfile();
 
 Now you can check `userProfile.userName` to verify that your login was successful.
 
-## Reusing your session(since v1.6.0)
+## Reusing your session
 
 ### Save token to file and reuse it.
 
