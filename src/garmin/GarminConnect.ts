@@ -734,6 +734,8 @@ export default class GarminConnect {
 
     /**
      * Imports GPX file content
+     *
+     * @example ./examples/example-gpx-file.js
      * @param fileName - Name of the GPX file
      * @param fileContent - Content of the GPX file as string
      * @returns Response from the GPX import operation
@@ -758,6 +760,9 @@ export default class GarminConnect {
 
     /**
      * Creates a course from GPX data
+     * You can get geoPoints and coursePoints from the imported GPX file response.
+     *
+     * @example ./examples/example-gpx-file.js
      * @param activityType - Type of activity for the course
      * @param courseName - Name of the course
      * @param geoPoints - Array of geographical points making up the course
