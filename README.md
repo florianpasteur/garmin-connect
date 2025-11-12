@@ -2,8 +2,6 @@
 
 This is a fork of https://github.com/Pythe1337N/garmin-connect which was inspired by [https://github.com/matin/garth](https://github.com/matin/garth). Many thanks to contributors.
 
-I created this fork to quickly deploy new features for myself.
-
 ---
 
 A powerful JavaScript library for connecting to Garmin Connect for interacting with Garmin connect data. It comes with some predefined methods to get and set different kinds of data for your Garmin account, but also have the possibility to make [custom requests](#custom-requests) `GET`, `POST` and `PUT` are currently supported. This makes it easy to implement whatever may be missing to suite your needs.
@@ -77,34 +75,6 @@ Reuse token:
 
 ```js
 GCClient.loadToken(oauth1, oauth2);
-```
-
-## Reusing your session(deprecated)
-
-This is an experimental feature and might not yet provide full stability.
-
-After a successful login the `sessionJson` getter and setter can be used to export and restore your session.
-
-```js
-// Exporting the session
-const session = GCClient.sessionJson;
-
-// Use this instead of GCClient.login() to restore the session
-// This will throw an error if the stored session cannot be reused
-GCClient.restore(session);
-```
-
-The exported session should be serializable and can be stored as a JSON string.
-
-A stored session can only be reused once and will need to be stored after each request. This can be done by attaching some storage to the `sessionChange` event.
-
-```js
-GCClient.onSessionChange((session) => {
-    /*
-        Your choice of storage here
-        node-persist will probably work in most cases 
-     */
-});
 ```
 
 ## Supported methods
