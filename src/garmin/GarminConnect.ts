@@ -247,6 +247,17 @@ export default class GarminConnect {
 
     /**
      * Download activity original data file
+     *
+     * Use the activityId to download the original activity data. Usually this is supplied as a .zip file.
+     *
+     * @example
+     * ```js
+     * const [activity] = await GCClient.getActivities(0, 1);
+     * // Directory path is optional and defaults to the current working directory.
+     * // Downloads filename will be supplied by Garmin.
+     * GCClient.downloadOriginalActivityData(activity, './some/path/that/exists');
+     * ```
+     *
      * @param activity - with activityId
      * @param dir - directory to save the file
      * @param type - 'zip' | 'gpx' | 'tcx' | 'kml' (default: 'zip')
@@ -324,6 +335,13 @@ export default class GarminConnect {
      * Deletes an activity by activityId
      * @param activity - with activityId
      * @returns void
+     *
+     * @example
+     * ```js
+     * const activities = await GCClient.getActivities(0, 1);
+     * const activity = activities[0];
+     * await GCClient.deleteActivity(activity);
+     * ```
      */
     async deleteActivity(activity: {
         activityId: GCActivityId;
@@ -362,8 +380,30 @@ export default class GarminConnect {
 
     /**
      * Creates a new workout
-     * Use workoutBuilder to create the workout object
+     *
+     * Use workoutBuilder to create the workout object. See the example in the examples/example-workout.js for more complex workouts.
+     *
      * @param workout - workout detail
+     * @returns Response from the workout creation operation
+     *
+     * @example
+     * ```js
+     * const wb = new WorkoutBuilder(
+     *     WorkoutType.Running,
+     *     'Workout running ' + new Date().toISOString()
+     * );
+     *
+     * wb.addStep(
+     *     new Step(
+     *         StepType.Run,
+     *         TimeDuration.fromSeconds(45),
+     *         new NoTarget(),
+     *         'Comment for the step: Run for 45 seconds'
+     *     )
+     * );
+     *
+     * GCClient.createWorkout(wb.build());
+     * ```
      */
     async createWorkout(workout: IWorkoutDetail) {
         return this.client.post<Workout>(this.url.WORKOUT(), workout);
@@ -372,6 +412,13 @@ export default class GarminConnect {
     /**
      * Deletes a workout by workoutId
      * @param workout - with workoutId
+     *
+     * @example
+     * ```js
+     * const workouts = await GCClient.getWorkouts();
+     * const id = workouts[0].workoutId;
+     * GCClient.deleteWorkout({ workoutId: id });
+     * ```
      */
     async deleteWorkout(workout: { workoutId: string }) {
         if (!workout.workoutId) throw new Error('Missing workout');
@@ -380,8 +427,18 @@ export default class GarminConnect {
 
     /**
      * Schedule a workout by workoutId to a specific date
+     *
+     * To add a workout to your calendar, provide the workout id and the date to schedule it on.
+     *
      * @param workout - with workoutId
-     * @param scheduleDate - 'YYYY-MM-DD'
+     * @param scheduleDate - 'YYYY-MM-DD' format date string
+     *
+     * @example
+     * ```js
+     * const workouts = await GCClient.getWorkouts();
+     * const id = workouts[0].workoutId;
+     * GCClient.scheduleWorkout({ workoutId: id }, new Date('2025-12-01'));
+     * ```
      */
     async scheduleWorkout(
         workout: { workoutId: string },
@@ -443,9 +500,18 @@ export default class GarminConnect {
 
     /**
      * Calculates sleep duration for a specific date
+     *
+     * Retrieves hours and minutes slept for a given date.
+     *
      * @param date - The date to get sleep duration for, defaults to current date
      * @returns Object with hours and minutes of sleep
      * @throws Error if sleep data is missing or invalid
+     *
+     * @example
+     * ```js
+     * const detailedSleep = await GCClient.getSleepDuration(new Date('2020-03-24'));
+     * console.log(`Hours: ${detailedSleep.hours}, Minutes: ${detailedSleep.minutes}`);
+     * ```
      */
     async getSleepDuration(
         date = new Date()
