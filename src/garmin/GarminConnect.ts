@@ -96,6 +96,12 @@ export default class GarminConnect {
         this.listeners = {};
     }
 
+    /**
+     * Login to Garmin Connect with provided credentials or those set during construction
+     * @param username - Optional username to override the one in credentials
+     * @param password - Optional password to override the one in credentials
+     * @returns The GarminConnect instance for chaining
+     */
     async login(username?: string, password?: string): Promise<GarminConnect> {
         if (username && password) {
             this.credentials.username = username;
@@ -107,6 +113,10 @@ export default class GarminConnect {
         );
         return this;
     }
+    /**
+     * Exports OAuth tokens to files in the specified directory
+     * @param dirPath - Directory path where token files will be saved
+     */
     exportTokenToFile(dirPath: string): void {
         if (!checkIsDirectory(dirPath)) {
             createDirectory(dirPath);
@@ -125,6 +135,11 @@ export default class GarminConnect {
             );
         }
     }
+    /**
+     * Loads OAuth tokens from files in the specified directory
+     * @param dirPath - Directory path where token files are stored
+     * @throws Error if directory not found
+     */
     loadTokenByFile(dirPath: string): void {
         if (!checkIsDirectory(dirPath)) {
             throw new Error('loadTokenByFile: Directory not found: ' + dirPath);
@@ -141,6 +156,11 @@ export default class GarminConnect {
         const oauth2 = JSON.parse(oauth2Data);
         this.client.oauth2Token = oauth2;
     }
+    /**
+     * Exports OAuth tokens as an object
+     * @returns Object containing OAuth1 and OAuth2 tokens
+     * @throws Error if tokens are not found
+     */
     exportToken(): IGarminTokens {
         if (!this.client.oauth1Token || !this.client.oauth2Token) {
             throw new Error('exportToken: Token not found');
@@ -150,20 +170,40 @@ export default class GarminConnect {
             oauth2: this.client.oauth2Token
         };
     }
-    // from db or localstorage etc
+    /**
+     * Loads OAuth tokens from provided token objects (e.g., from DB or localStorage)
+     * @param oauth1 - OAuth1 token object
+     * @param oauth2 - OAuth2 token object
+     */
     loadToken(oauth1: IOauth1Token, oauth2: IOauth2Token): void {
         this.client.oauth1Token = oauth1;
         this.client.oauth2Token = oauth2;
     }
 
+    /**
+     * Retrieves the user's settings from Garmin Connect
+     * @returns User settings data
+     */
     async getUserSettings(): Promise<IUserSettings> {
         return this.client.get<IUserSettings>(this.url.USER_SETTINGS);
     }
 
+    /**
+     * Retrieves the user's social profile from Garmin Connect
+     * @returns User's social profile data
+     */
     async getUserProfile(): Promise<ISocialProfile> {
         return this.client.get<ISocialProfile>(this.url.USER_PROFILE);
     }
 
+    /**
+     * Retrieves a list of activities matching the specified criteria
+     * @param start - Optional starting index for pagination
+     * @param limit - Optional limit for pagination
+     * @param activityType - Optional activity type filter
+     * @param subActivityType - Optional activity subtype filter
+     * @returns Array of activities matching the criteria
+     */
     async getActivities(
         start?: number,
         limit?: number,
@@ -175,6 +215,12 @@ export default class GarminConnect {
         });
     }
 
+    /**
+     * Retrieves a specific activity by its ID
+     * @param activity - Object containing activityId
+     * @returns Details of the specified activity
+     * @throws Error if activityId is missing
+     */
     async getActivity(activity: {
         activityId: GCActivityId;
     }): Promise<IActivity> {
@@ -184,6 +230,10 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Counts lifetime activities
+     * @returns Activity statistics including counts by type
+     */
     async countActivities(): Promise<ICountActivities> {
         return this.client.get<ICountActivities>(this.url.STAT_ACTIVITIES, {
             params: {
@@ -343,6 +393,12 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Retrieves step count for a specific date
+     * @param date - The date to get step count for, defaults to current date
+     * @returns Total step count for the specified date
+     * @throws Error if steps data not found for the date
+     */
     async getSteps(date = new Date()): Promise<number> {
         const dateString = toDateString(date);
 
@@ -360,6 +416,12 @@ export default class GarminConnect {
         return dayStats.totalSteps;
     }
 
+    /**
+     * Retrieves sleep data for a specific date
+     * @param date - The date to get sleep data for, defaults to current date
+     * @returns Sleep data for the specified date
+     * @throws Error if sleep data is invalid or empty
+     */
     async getSleepData(date = new Date()): Promise<SleepData> {
         try {
             const dateString = toDateString(date);
@@ -379,6 +441,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Calculates sleep duration for a specific date
+     * @param date - The date to get sleep duration for, defaults to current date
+     * @returns Object with hours and minutes of sleep
+     * @throws Error if sleep data is missing or invalid
+     */
     async getSleepDuration(
         date = new Date()
     ): Promise<{ hours: number; minutes: number }> {
@@ -415,6 +483,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves weight data for a specific date
+     * @param date - The date to get weight data for, defaults to current date
+     * @returns Weight data for the specified date
+     * @throws Error if weight data is invalid or empty
+     */
     async getDailyWeightData(date = new Date()): Promise<WeightData> {
         try {
             const dateString = toDateString(date);
@@ -432,6 +506,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves weight data in pounds for a specific date
+     * @param date - The date to get weight data for, defaults to current date
+     * @returns Weight in pounds for the specified date
+     * @throws Error if valid weight data not found for the date
+     */
     async getDailyWeightInPounds(date = new Date()): Promise<number> {
         const weightData = await this.getDailyWeightData(date);
 
@@ -445,6 +525,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves hydration data in fluid ounces for a specific date
+     * @param date - The date to get hydration data for, defaults to current date
+     * @returns Hydration value in fluid ounces for the specified date
+     * @throws Error if hydration data is invalid or empty
+     */
     async getDailyHydration(date = new Date()): Promise<number> {
         try {
             const dateString = toDateString(date);
@@ -462,6 +548,14 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Updates weight data for a specific date
+     * @param date - The date for the weight data, defaults to current date
+     * @param lbs - Weight value in pounds
+     * @param timezone - Timezone string for correct timestamp conversion
+     * @returns Response from the weight update operation
+     * @throws Error if update fails
+     */
     async updateWeight(
         date = new Date(),
         lbs: number,
@@ -484,6 +578,13 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Updates hydration log with fluid ounces for a specific date
+     * @param date - The date for the hydration data, defaults to current date
+     * @param valueInOz - Hydration value in fluid ounces
+     * @returns Response from the hydration update operation
+     * @throws Error if update fails
+     */
     async updateHydrationLogOunces(
         date = new Date(),
         valueInOz: number
@@ -508,6 +609,11 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves golf summary data
+     * @returns Summary of golf activities
+     * @throws Error if golf summary data is invalid or empty
+     */
     async getGolfSummary(): Promise<GolfSummary> {
         try {
             const golfSummary = await this.client.get<GolfSummary>(
@@ -524,6 +630,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves golf scorecard for a specific round
+     * @param scorecardId - ID of the scorecard to retrieve
+     * @returns Golf scorecard data
+     * @throws Error if golf scorecard data is invalid or empty
+     */
     async getGolfScorecard(scorecardId: number): Promise<GolfScorecard> {
         try {
             const golfScorecard = await this.client.get<GolfScorecard>(
@@ -543,6 +655,12 @@ export default class GarminConnect {
         }
     }
 
+    /**
+     * Retrieves heart rate data for a specific date
+     * @param date - The date to get heart rate data for, defaults to current date
+     * @returns Heart rate data for the specified date
+     * @throws Error if the operation fails
+     */
     async getHeartRate(date = new Date()): Promise<HeartRate> {
         try {
             const dateString = toDateString(date);
@@ -606,10 +724,20 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Retrieves all workouts
+     * @returns List of workouts
+     */
     async workouts(): Promise<Workout[]> {
         return this.client.get(this.url.WORKOUTS_LIST());
     }
 
+    /**
+     * Imports GPX file content
+     * @param fileName - Name of the GPX file
+     * @param fileContent - Content of the GPX file as string
+     * @returns Response from the GPX import operation
+     */
     async importGpx(
         fileName: string,
         fileContent: string
@@ -628,6 +756,14 @@ export default class GarminConnect {
         });
     }
 
+    /**
+     * Creates a course from GPX data
+     * @param activityType - Type of activity for the course
+     * @param courseName - Name of the course
+     * @param geoPoints - Array of geographical points making up the course
+     * @param coursePoints - Optional array of course points (waypoints)
+     * @returns Response from the course creation operation
+     */
     async createCourse(
         activityType: GpxActivityType,
         courseName: string,
@@ -646,10 +782,19 @@ export default class GarminConnect {
         );
     }
 
+    /**
+     * Lists all courses
+     * @returns List of courses
+     */
     async listCourses(): Promise<ListCoursesResponse> {
         return this.client.get<ListCoursesResponse>(this.url.LIST_COURSES);
     }
 
+    /**
+     * Exports a course as GPX file content
+     * @param courseId - ID of the course to export
+     * @returns GPX file content as string
+     */
     async exportCourseAsGpx(courseId: number): Promise<string> {
         return this.client.get<string>(
             this.url.EXPORT_COURSE_GPX_FILE(courseId),
@@ -714,16 +859,34 @@ export default class GarminConnect {
         });
     }
 
+    /**
+     * Performs a GET request to the specified URL
+     * @param url - URL to send the request to
+     * @param data - Optional query parameters or request configuration
+     * @returns Response data of type T
+     */
     async get<T>(url: string, data?: any) {
         const response = await this.client.get(url, data);
         return response as T;
     }
 
+    /**
+     * Performs a POST request to the specified URL
+     * @param url - URL to send the request to
+     * @param data - Data to send in the request body
+     * @returns Response data of type T
+     */
     async post<T>(url: string, data: any) {
         const response = await this.client.post<T>(url, data, {});
         return response as T;
     }
 
+    /**
+     * Performs a PUT request to the specified URL
+     * @param url - URL to send the request to
+     * @param data - Data to send in the request body
+     * @returns Response data of type T
+     */
     async put<T>(url: string, data: any) {
         const response = await this.client.put<T>(url, data, {});
         return response as T;
