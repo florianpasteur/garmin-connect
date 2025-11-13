@@ -1,14 +1,61 @@
-# garmin-connect
+# Garmin Connect
 
 This is a fork of https://github.com/Pythe1337N/garmin-connect which was inspired by [https://github.com/matin/garth](https://github.com/matin/garth). Many thanks to contributors.
 
 ---
 
-A powerful JavaScript library for connecting to Garmin Connect for interacting with Garmin connect data. It comes with some predefined methods to get and set different kinds of data for your Garmin account, but also have the possibility to make [custom requests](#custom-requests) `GET`, `POST` and `PUT` are currently supported. This makes it easy to implement whatever may be missing to suite your needs.
+A JavaScript library for accessing and managing your Garmin Connect data. It comes with methods to get and set information in your Garmin account, and also supports [custom requests](#custom-requests) using `GET`, `POST`, and `PUT` so you can cover additional needs.
 
-## Authentification
+This document provides detailed information about the public API methods available in the `@flow-js/garmin-connect` library.
 
-This library will require you to add a configuration file to your project root called `garmin.config.json` containing your username and password for the Garmin Connect service.
+## Table of Contents
+
+-   [Authentication](#authentication)
+    -   [Constructor](#constructor)
+    -   [Login](#login)
+    -   [Session Management](#session-management)
+-   [User Data](#user-data)
+    -   [User Profile](#user-profile)
+    -   [User Settings](#user-settings)
+-   [Activities](#activities)
+    -   [Getting Activities](#getting-activities)
+    -   [Individual Activity Operations](#individual-activity-operations)
+    -   [Activity Files](#activity-files)
+-   [Workouts](#workouts)
+    -   [Managing Workouts](#managing-workouts)
+    -   [Workout Scheduling](#workout-scheduling)
+-   [Health Data](#health-data)
+    -   [Steps](#steps)
+    -   [Sleep](#sleep)
+    -   [Weight](#weight)
+    -   [Hydration](#hydration)
+    -   [Heart Rate](#heart-rate)
+-   [Golf](#golf)
+-   [Gear](#gear)
+-   [GPX and Courses](#gpx-and-courses)
+-   [Calendar](#calendar)
+-   [Custom Requests](#custom-requests)
+
+## Authentication
+
+### Constructor
+
+Create a new instance of the Garmin Connect client.
+
+```js
+const { GarminConnect } = require('@flow-js/garmin-connect');
+
+// Create a new Garmin Connect Client with credentials
+const GCClient = new GarminConnect({
+    username: 'my.email@example.com',
+    password: 'MySecretPassword'
+});
+
+// Alternatively, create a client using credentials from garmin.config.json
+const GCClient = new GarminConnect();
+```
+
+You can also provide a configuration file named `garmin.config.json` at your project root:
 
 ```json
 {
@@ -17,86 +64,144 @@ This library will require you to add a configuration file to your project root c
 }
 ```
 
-## How to install
-
-```shell
-$ npm install @flow-js/garmin-connect
-```
-
-## How to use
+### Login
 
 ```js
-const { GarminConnect } = require('@flow-js/garmin-connect`');
-// Create a new Garmin Connect Client
-const GCClient = new GarminConnect({
-    username: 'my.email@example.com',
-    password: 'MySecretPassword'
-});
-// Uses credentials from garmin.config.json or uses supplied params
+/**
+ * Login to Garmin Connect with provided credentials or those set during construction
+ * @param username - Optional username to override the one in credentials
+ * @param password - Optional password to override the one in credentials
+ * @returns The GarminConnect instance for chaining
+ */
+async login(username?: string, password?: string): Promise<GarminConnect>
+```
+
+Example:
+
+```js
 await GCClient.login();
-const userProfile = await GCClient.getUserProfile();
+// Or with specific credentials
+await GCClient.login('my.email@example.com', 'MySecretPassword');
 ```
 
-Now you can check `userProfile.userName` to verify that your login was successful.
+### Session Management
 
-You can find more examples in the `examples` folder.
-
-## Reusing your session
-
-### Save token to file and reuse it.
+#### Export Tokens
 
 ```js
-GCClient.saveTokenToFile('/path/to/save/tokens');
+/**
+ * Exports OAuth tokens to files in the specified directory
+ * @param dirPath - Directory path where token files will be saved
+ */
+exportTokenToFile(dirPath: string): void
 ```
 
-Result:
+Example:
 
-```bash
-$ ls /path/to/save/tokens
-oauth1_token.json oauth2_token.json
+```js
+GCClient.exportTokenToFile('/path/to/save/tokens');
+// Creates oauth1_token.json and oauth2_token.json in the specified directory
 ```
 
-Reuse token:
+#### Load Tokens from Files
+
+```js
+/**
+ * Loads OAuth tokens from files in the specified directory
+ * @param dirPath - Directory path where token files are stored
+ * @throws Error if directory not found
+ */
+loadTokenByFile(dirPath: string): void
+```
+
+Example:
 
 ```js
 GCClient.loadTokenByFile('/path/to/save/tokens');
 ```
 
-### Or just save your token to db or other storage.
+#### Export Tokens as Object
+
+```js
+/**
+ * Exports OAuth tokens as an object
+ * @returns Object containing OAuth1 and OAuth2 tokens
+ * @throws Error if tokens are not found
+ */
+exportToken(): IGarminTokens
+```
+
+#### Load Tokens from Objects
+
+```js
+/**
+ * Loads OAuth tokens from provided token objects (e.g., from DB or localStorage)
+ * @param oauth1 - OAuth1 token object
+ * @param oauth2 - OAuth2 token object
+ */
+loadToken(oauth1: IOauth1Token, oauth2: IOauth2Token): void
+```
+
+Example:
 
 ```js
 const oauth1 = GCClient.client.oauth1Token;
 const oauth2 = GCClient.client.oauth2Token;
-// save to db or other storage
-// ...
-```
-
-Reuse token:
-
-```js
+// Later, use these to restore the session
 GCClient.loadToken(oauth1, oauth2);
 ```
 
-## Supported methods
+## User Data
 
-Below the list of supported methods by this library. Please also explore the [examples](./examples) folder for more usage examples and the typescript to find undocumented methods.
+### User Profile
 
-### `getActivities(start: number, limit: number, activityType?: ActivityType, subActivityType?: ActivitySubType): Promise<IActivity[]>`
+```js
+/**
+ * Retrieves the user's social profile from Garmin Connect
+ * @returns User's social profile data
+ */
+async getUserProfile(): Promise<ISocialProfile>
+```
 
-Retrieves a list of activities based on specified parameters.
+Example:
 
-#### Parameters:
+```js
+const userProfile = await GCClient.getUserProfile();
+console.log(userProfile.userName); // Verify login was successful
+```
 
--   `start` (number, optonal): Index to start fetching activities.
--   `limit` (number, optonal): Number of activities to retrieve.
--   `activityType` (ActivityType, optional): Type of activity (if specified, start must be null).
--   `subActivityType` (ActivitySubType, optional): Subtype of activity (if specified, start must be null).
+### User Settings
 
-#### Returns:
+```js
+/**
+ * Retrieves the user's settings from Garmin Connect
+ * @returns User settings data
+ */
+async getUserSettings(): Promise<IUserSettings>
+```
 
--   `Promise<IActivity[]>`: A Promise that resolves to an array of activities.
+## Activities
 
-#### Example:
+### Getting Activities
+
+```js
+/**
+ * Retrieves a list of activities matching the specified criteria
+ * @param start - Optional starting index for pagination
+ * @param limit - Optional limit for pagination
+ * @param activityType - Optional activity type filter
+ * @param subActivityType - Optional activity subtype filter
+ * @returns Array of activities matching the criteria
+ */
+async getActivities(
+    start?: number,
+    limit?: number,
+    activityType?: ActivityType,
+    subActivityType?: ActivitySubType
+): Promise<IActivity[]>
+```
+
+Example:
 
 ```js
 const activities = await GCClient.getActivities(
@@ -107,21 +212,29 @@ const activities = await GCClient.getActivities(
 );
 ```
 
-### `getActivity(activity: { activityId: GCActivityId }): Promise<IActivity>`
+```js
+/**
+ * Counts lifetime activities
+ * @returns Activity statistics including counts by type
+ */
+async countActivities(): Promise<ICountActivities>
+```
 
-Retrieves details for a specific activity based on the provided `activityId`.
+### Individual Activity Operations
 
-#### Parameters:
+```js
+/**
+ * Retrieves a specific activity by its ID
+ * @param activity - Object containing activityId
+ * @returns Details of the specified activity
+ * @throws Error if activityId is missing
+ */
+async getActivity(activity: {
+    activityId: GCActivityId;
+}): Promise<IActivity>
+```
 
--   `activity` (object): An object containing the `activityId` property.
-
-    -   `activityId` (GCActivityId): Identifier for the desired activity.
-
-#### Returns:
-
--   `Promise<IActivity>`: A Promise that resolves to the details of the specified activity.
-
-#### Example:
+Example:
 
 ```js
 const activityDetails = await GCClient.getActivity({
@@ -129,369 +242,568 @@ const activityDetails = await GCClient.getActivity({
 });
 ```
 
-### Download original activity data
-
-Use the activityId to download the original activity data. Usually this is supplied as a .zip file.
-
 ```js
-const [activity] = await GCClient.getActivities(0, 1);
-// Directory path is optional and defaults to the current working directory.
-// Downloads filename will be supplied by Garmin.
-GCClient.downloadOriginalActivityData(activity, './some/path/that/exists');
+/**
+ * Deletes an activity by activityId
+ * @param activity - with activityId
+ * @returns void
+ *
+ */
+async deleteActivity(activity: {
+    activityId: GCActivityId;
+}): Promise<void>
 ```
 
-### Upload activity file
+```js
+/**
+ * Renames an activity with the given activityId to the newName.
+ * @param activityId
+ * @param newName
+ */
+async renameActivity(
+    activityId: GCActivityId,
+    newName: string
+): Promise<void>
+```
 
-Uploads an activity file as a new Activity. The file can be a `gpx`, `tcx`, or `fit` file. If the activity already exists, the result will have a status code of 409.
-Upload fixed in 1.4.4, Garmin changed the upload api, the response `detailedImportResult` doesn't contain the new activityId.
+### Activity Files
+
+`````ts
+/**
+ * Download activity original data file
+ *
+ * Use the activityId to download the original activity data. Usually this is supplied as a .zip file.
+ *
+ * @example
+ * ```js
+ * const [activity] = await GCClient.getActivities(0, 1);
+ * // Directory path is optional and defaults to the current working directory.
+ * // Downloads filename will be supplied by Garmin.
+ * GCClient.downloadOriginalActivityData(activity, './some/path/that/exists');
+ * ```
+ *
+ * @param activity - with activityId
+ * @param dir - directory to save the file
+ * @param type - 'zip' | 'gpx' | 'tcx' | 'kml' (default: 'zip')
+ */
+async downloadOriginalActivityData(
+    activity: { activityId: GCActivityId },
+    dir: string,
+    type: ExportFileTypeValue = 'zip'
+): Promise<void>
+``` `
+
+```js
+/**
+ * Uploads an activity file
+ *
+ * Uploads an activity file as a new Activity. The file can be a 'gpx', 'tcx', or 'fit' file.
+ * If the activity already exists, the result will have a status code of 409.
+ * Note: Garmin changed the upload API in v1.4.4, the response `detailedImportResult` no longer contains the new activityId.
+ *
+ * @param file - Path to the activity file
+ * @param format - 'fit' | 'gpx' | 'tcx'
+ * @returns Response from the upload operation
+ */
+async uploadActivity(
+    file: string,
+    format: UploadFileTypeTypeValue = 'fit'
+)
+```
+
+Example:
 
 ```js
 const upload = await GCClient.uploadActivity('./some/path/to/file.fit');
-// not working
-const activityId = upload.detailedImportResult.successes[0].internalId;
-const uploadId = upload.detailedImportResult.uploadId;
+// Note: Garmin changed the upload API in v1.4.4
+// const activityId = upload.detailedImportResult.successes[0].internalId; // Not working
+// const uploadId = upload.detailedImportResult.uploadId;
 ```
 
-### Upload activity image
+## Workouts
 
-Uploads an image to activity
+### Managing Workouts
 
 ```js
-const [latestActivty] = await GCClient.getActivities(0, 1);
-
-const upload = await GCClient.uploadImage(
-    latestActivty,
-    './some/path/to/file.jpg'
-);
+/**
+ * Gets the list of workouts
+ * @param start
+ * @param limit
+ */
+async getWorkouts(start: number, limit: number): Promise<IWorkout[]>
 ```
-
-### Delete activity image
-
-Delete an image from activity
 
 ```js
-const [activity] = await GCClient.getActivities(0, 1);
-const activityDetails = await GCClient.getActivityDetails(activity.activityId);
-
-await GCClient.deleteImage(
-    activity,
-    activityDetails.metadataDTO.activityImages[0].imageId
-);
+/**
+ * Gets the workout detail by workoutId
+ * @param workout
+ * @returns workout detail - IWorkoutDetail
+ */
+async getWorkoutDetail(workout: {
+    workoutId: string;
+}): Promise<IWorkoutDetail>
 ```
 
-### `getSteps(date?: Date): Promise<number>`
+````js
+/**
+ * Creates a new workout
+ *
+ * Use workoutBuilder to create the workout object. See the example in the examples/example-workout.js for more complex workouts.
+ *
+ * @param workout - workout detail
+ * @returns Response from the workout creation operation
+ *
+ * @example
+ * ```js
+ * const wb = new WorkoutBuilder(
+ *     WorkoutType.Running,
+ *     'Workout running ' + new Date().toISOString()
+ * );
+ *
+ * wb.addStep(
+ *     new Step(
+ *         StepType.Run,
+ *         TimeDuration.fromSeconds(45),
+ *         new NoTarget(),
+ *         'Comment for the step: Run for 45 seconds'
+ *     )
+ * );
+ *
+ * GCClient.createWorkout(wb.build());
+ * ```
+ */
+async createWorkout(workout: IWorkoutDetail)
+`````
 
-Retrieves the total steps for a given date.
+````js
+/**
+ * Deletes a workout by workoutId
+ * @param workout - with workoutId
+ *
+ * @example
+ * ```js
+ * const workouts = await GCClient.getWorkouts();
+ * const id = workouts[0].workoutId;
+ * GCClient.deleteWorkout({ workoutId: id });
+ * ```
+ */
+async deleteWorkout(workout: { workoutId: string })
+````
 
-#### Parameters:
+```js
+/**
+ * Retrieves all workouts
+ * @returns List of workouts
+ */
+async workouts(): Promise<Workout[]>
+```
 
--   `date` (Date, optional): Date of the steps information requested; defaults to today if no date is supplied.
+### Workout Scheduling
 
-#### Returns:
+````js
+/**
+ * Schedule a workout by workoutId to a specific date
+ *
+ * To add a workout to your calendar, provide the workout id and the date to schedule it on.
+ *
+ * @param workout - with workoutId
+ * @param scheduleDate - 'YYYY-MM-DD' format date string
+ *
+ * @example
+ * ```js
+ * const workouts = await GCClient.getWorkouts();
+ * const id = workouts[0].workoutId;
+ * GCClient.scheduleWorkout({ workoutId: id }, new Date('2025-12-01'));
+ * ```
+ */
+async scheduleWorkout(
+    workout: { workoutId: string },
+    scheduleDate: string
+)
+````
 
--   `Promise<number>`: A Promise that resolves to the total steps for the specified date.
+## Health Data
 
-#### Example:
+### Steps
+
+```js
+/**
+ * Retrieves step count for a specific date
+ * @param date - The date to get step count for, defaults to current date
+ * @returns Total step count for the specified date
+ * @throws Error if steps data not found for the date
+ */
+async getSteps(date = new Date()): Promise<number>
+```
+
+Example:
 
 ```js
 const totalSteps = await GCClient.getSteps(new Date('2020-03-24'));
 ```
 
-### `getSleepData(date: string): Promise<SleepData>`
-
-Retrieves all sleep data for a given date
-
-#### Parameters:
-
--   `date` (Date, optional): Date of information requested, this will default to today if no date is supplied
-
-#### Returns:
-
--   `Promise<SleepData>`: A Promise that resolves to an object containing detailed sleep information.
-
-    -   `dailySleepDTO` (object): Information about the user's daily sleep.
-        -   `id` (number): The unique identifier of the sleep record.
-        -   `userProfilePK` (number): The user's profile identifier.
-        -   `calendarDate` (string): The date of the sleep record.
-        -   ...
-    -   `sleepMovement` (array): An array of sleep movement data.
-    -   `remSleepData` (boolean): Indicates whether REM sleep data is available.
-    -   `sleepLevels` (array): An array of sleep levels data.
-    -   `restlessMomentsCount` (number): Count of restless moments during sleep.
-    -   ...
-
-#### Example:
+### Sleep
 
 ```js
-const detailedSleep = await GCClient.getSleepDuration(new Date('2020-03-24'));
-```
-
-### `getSleepDuration(date: string): Promise<{hours: number, minutes: number}`
-
-Retrieves hours and minutes slept for a given date
-
-#### Parameters:
-
--   `date` (Date, optional): Date of information requested, this will default to today if no date is supplied
-
-#### Returns:
-
--   `Promise<{hours: string, minutes: string }>`: A Promise that resolves to an object containing information about the sleep duration
-
-    -   `hours` (string): Number of hours
-    -   `minutes` (string): Number of minutes
-
-#### Example:
-
-```js
-const detailedSleep = await GCClient.getSleepDuration(new Date('2020-03-24'));
-```
-
-### `getDailyWeightData(date?: Date): Promise<number>`
-
-Retrieves the daily weight and converts it from grams to pounds.
-
-#### Parameters:
-
--   `date` (Date, optional): Date of information requested. Defaults to the current date.
-
-#### Returns:
-
--   `Promise<number>`: A Promise that resolves to the daily weight converted from grams to pounds.
-
-#### Throws:
-
--   `Error`: If valid daily weight data cannot be found for the specified date.
-
-#### Example:
-
-```js
-const weightData = await GCClient.getDailyWeightData(new Date('2023-12-25'));
-```
-
-### `getDailyWeightInPounds(date?: Date): Promise<number>`
-
-Retrieves the daily weight in pounds for a given date.
-
-#### Parameters:
-
--   `date` (Date, optional): Date of information requested; defaults to today if no date is supplied.
-
-#### Returns:
-
--   `Promise<number>`: A Promise that resolves to the daily weight in pounds.
-
-#### Example:
-
-```js
-const weightInPounds = await GCClient.getDailyWeightInPounds(
-    new Date('2020-03-24')
-);
-```
-
-### `getDailyHydration(date?: Date): Promise<number>`
-
-Retrieves the daily hydration data and converts it from milliliters to ounces.
-
-#### Parameters:
-
--   `date` (Date, optional): Date of the requested information. Defaults to the current date.
-
-#### Returns:
-
--   `Promise<number>`: A Promise that resolves to the daily hydration data converted from milliliters to ounces.
-
-#### Throws:
-
--   `Error`: If valid daily hydration data cannot be found for the specified date or if the response is invalid.
-
-#### Example:
-
-```js
-const hydrationInOunces = await GCClient.getDailyHydration(
-    new Date('2023-12-25')
-);
-```
-
-### `getGolfSummary(): Promise<GolfSummary>`
-
-Retrieves a summary of golf scorecard data.
-
-#### Returns:
-
--   `Promise<GolfSummary>`: A Promise that resolves to the golf scorecard summary.
-
-#### Example:
-
-```js
-const golfSummary = await GCClient.getGolfSummary();
-```
-
-### `getGolfScorecard(scorecardId: number): Promise<GolfScorecard>`
-
-Retrieves golf scorecard data for a specific scorecard.
-
-#### Parameters:
-
--   `scorecardId` (number): Identifier for the desired golf scorecard.
-
-#### Returns:
-
--   `Promise<GolfScorecard>`: A Promise that resolves to the golf scorecard data.
-
-#### Example:
-
-```js
-const scorecardId = 123; // Replace with the desired scorecard ID
-const golfScorecard = await GCClient.getGolfScorecard(scorecardId);
-```
-
-### `getHeartRate(date?: Date): Promise<HeartRate>`
-
-Retrieves daily heart rate data for a given date.
-
-#### Parameters:
-
--   `date` (Date, optional): Date of the heart rate data requested; defaults to today if no date is supplied.
-
-#### Returns:
-
--   `Promise<HeartRate>`: A Promise that resolves to the daily heart rate data.
-
-#### Example:
-
-```js
-const heartRateData = await GCClient.getHeartRate(new Date('2020-03-24'));
-```
-
-### Delete an activity
-
-Deletes an activty.
-
-```js
-const activities = await GCClient.getActivities(0, 1);
-const activity = activities[0];
-await GCClient.deleteActivity(activity);
-```
-
-### `updateHydrationLogOunces(date?: Date, valueInOz: number): Promise<WaterIntake>`
-
-Adds a hydration log entry in ounces for a given date.
-
-#### Parameters:
-
--   `date` (Date, optional): Date of the log entry; defaults to today if no date is supplied.
--   `valueInOz` (number): Amount of water intake in ounces. Accepts negative number.
-
-#### Returns:
-
--   `Promise<WaterIntake>`: A Promise that resolves to the hydration log entry.
-
-#### Example:
-
-```js
-const hydrationLogEntry = await GCClient.addHydrationLogOunces(
-    new Date('2020-03-24'),
-    16
-);
-```
-
-### `updateWeight(date = new Date(), lbs: number, timezone: string): Promise<UpdateWeight>`
-
-Updates weight information
-
-#### Parameters:
-
--   `date` (optional): Date object representing the weight entry date. Defaults to the current date if not provided.
--   `lbs` (number): Weight value in pounds.
--   `timezone` (string): String representing the timezone for the weight entry.
-
-#### Returns:
-
--   `Promise<UpdateWeight>`: A Promise that resolves to the result of the weight update.
-
-#### Example:
-
-```js
-await GCClient.updateWeight(undefined, 202.9, 'America/Los_Angeles');
-```
-
-### Add workout
-
-To create a workout, you can use the `WorkoutBuilder` class to create a workout object and then use the method to add your workout.
-
-See the example in the [example-workout.js](examples/example-workout.js) for more complex workouts.
-
-```js
-const wb = new WorkoutBuilder(
-    WorkoutType.Running,
-    'Workout running ' + new Date().toISOString()
-);
-
 /**
- * There are multiple StepTypes: WarmUp, Run, Recovery, Rest, Cooldown, Other
+ * Retrieves sleep data for a specific date
+ * @param date - The date to get sleep data for, defaults to current date
+ * @returns Sleep data for the specified date
+ * @throws Error if sleep data is invalid or empty
  */
-wb.addStep(
-    new Step(
-        StepType.Run,
-        TimeDuration.fromSeconds(45),
-        new NoTarget(),
-        'Comment for the step: Run for 45 seconds'
-    )
-);
-
-//
-GCClient.addWorkout(wb.build());
+async getSleepData(date = new Date()): Promise<SleepData>
 ```
 
-Alternatively, you can create a workout by providing a raw workout object.
+````js
+/**
+ * Calculates sleep duration for a specific date
+ *
+ * Retrieves hours and minutes slept for a given date.
+ *
+ * @param date - The date to get sleep duration for, defaults to current date
+ * @returns Object with hours and minutes of sleep
+ * @throws Error if sleep data is missing or invalid
+ *
+ * @example
+ * ```js
+ * const detailedSleep = await GCClient.getSleepDuration(new Date('2020-03-24'));
+ * console.log(`Hours: ${detailedSleep.hours}, Minutes: ${detailedSleep.minutes}`);
+ * ```
+ */
+async getSleepDuration(
+    date = new Date()
+): Promise<{ hours: number; minutes: number }>
+````
 
-### Schedule workout
-
-To add a workout to your calendar, provide the workout id and the date to schedule it on.
-The date format must be `'YYYY-MM-DD'`.
+### Weight
 
 ```js
-const workouts = await GCClient.getWorkouts();
-const id = workouts[0].workoutId;
-GCClient.scheduleWorkout({ workoutId: id }, new Date('2025-12-01'));
+/**
+ * Retrieves weight data for a specific date
+ * @param date - The date to get weight data for, defaults to current date
+ * @returns Weight data for the specified date
+ * @throws Error if weight data is invalid or empty
+ */
+async getDailyWeightData(date = new Date()): Promise<WeightData>
 ```
-
-### Delete workout
-
-To delete a workout provide the workout id.
 
 ```js
-const workouts = await GCClient.getWorkouts();
-const id = workouts[0].workoutId;
-GCClient.deleteWorkout({ workoutId: id });
+/**
+ * Retrieves weight data in pounds for a specific date
+ * @param date - The date to get weight data for, defaults to current date
+ * @returns Weight in pounds for the specified date
+ * @throws Error if valid weight data not found for the date
+ */
+async getDailyWeightInPounds(date = new Date()): Promise<number>
 ```
 
-## Custom requests
+````js
+/**
+ * Updates weight data for a specific date
+ *
+ * Updates weight information for the specified date.
+ *
+ * @param date - The date for the weight data, defaults to current date
+ * @param lbs - Weight value in pounds
+ * @param timezone - Timezone string for correct timestamp conversion
+ * @returns Response from the weight update operation
+ * @throws Error if update fails
+ *
+ * @example
+ * ```js
+ * await GCClient.updateWeight(undefined, 202.9, 'America/Los_Angeles');
+ * ```
+ */
+async updateWeight(
+    date = new Date(),
+    lbs: number,
+    timezone: string
+): Promise<UpdateWeight>
+````
 
-This library will handle custom requests to your active Garmin Connect session. There are a lot of different url's that is used, which means that this library probably wont cover them all. By using the network analyze tool you can find url's that are used by Garmin Connect to fetch data.
-
-Let's assume I found a `GET` requests to the following url:
-
-```
-https://connect.garmin.com/modern/proxy/wellness-service/wellness/dailyHeartRate/22f5f84c-de9d-4ad6-97f2-201097b3b983?date=2020-03-24
-```
-
-The request can be sent using `GCClient` by running
+### Hydration
 
 ```js
-// You can get your displayName by using the getUserInfo method;
-const displayName = '22f5f84c-de9d-4ad6-97f2-201097b3b983';
-const url =
-    'https://connect.garmin.com/modern/proxy/wellness-service/wellness/dailyHeartRate/';
-const dateString = '2020-03-24';
-GCClient.get(url + displayName, { date: dateString });
+/**
+ * Retrieves hydration data in fluid ounces for a specific date
+ * @param date - The date to get hydration data for, defaults to current date
+ * @returns Hydration value in fluid ounces for the specified date
+ * @throws Error if hydration data is invalid or empty
+ */
+async getDailyHydration(date = new Date()): Promise<number>
 ```
 
-and will net you the same result as using the provided way
+````js
+/**
+ * Updates hydration log with fluid ounces for a specific date
+ *
+ * Adds a hydration log entry in ounces for a given date.
+ *
+ * @param date - The date for the hydration data, defaults to current date
+ * @param valueInOz - Hydration value in fluid ounces. Accepts negative number.
+ * @returns Response from the hydration update operation
+ * @throws Error if update fails
+ *
+ * @example
+ * ```js
+ * const hydrationLogEntry = await GCClient.updateHydrationLogOunces(
+ *     new Date('2020-03-24'),
+ *     16
+ * );
+ * ```
+ */
+async updateHydrationLogOunces(
+    date = new Date(),
+    valueInOz: number
+): Promise<WaterIntake>
+````
+
+### Heart Rate
+
+````js
+/**
+ * Retrieves heart rate data for a specific date
+ *
+ * Retrieves daily heart rate data for a given date.
+ *
+ * @param date - The date to get heart rate data for, defaults to current date
+ * @returns Heart rate data for the specified date
+ * @throws Error if the operation fails
+ *
+ * @example
+ * ```js
+ * const heartRateData = await GCClient.getHeartRate(new Date('2020-03-24'));
+ * ```
+ */
+async getHeartRate(date = new Date()): Promise<HeartRate>
+````
+
+## Golf
 
 ```js
-GCClient.getHeartRate();
+/**
+ * Retrieves golf summary data
+ * @returns Summary of golf activities
+ * @throws Error if golf summary data is invalid or empty
+ */
+async getGolfSummary(): Promise<GolfSummary>
 ```
 
-Notice how the client will keep track of the url's, your user information as well as keeping the session alive.
+```js
+/**
+ * Retrieves golf scorecard for a specific round
+ * @param scorecardId - ID of the scorecard to retrieve
+ * @returns Golf scorecard data
+ * @throws Error if golf scorecard data is invalid or empty
+ */
+async getGolfScorecard(scorecardId: number): Promise<GolfScorecard>
+```
+
+## Gear
+
+```js
+/**
+ * Returns the gear data for the user.
+ * @param availableGearDate - Optional date to filter the gear available at the date (format: 'YYYY-MM-DD').
+ */
+async getGear(availableGearDate?: string): Promise<GearData[]>
+```
+
+```js
+/**
+ * Returns the gear data assigned with a specific activity.
+ * @param activityId
+ */
+async getGearsForActivity(activityId: GCActivityId): Promise<GearData[]>
+```
+
+```js
+/**
+ * Links a gear item to an activity.
+ * @param activityId
+ * @param gearId - uuid field from GearData
+ * @return GearData - the linked gear item data
+ */
+async linkGearToActivity(
+    activityId: GCActivityId,
+    gearId: GCGearId
+): Promise<GearData>
+```
+
+```js
+/**
+ * Unlinks a gear item from an activity.
+ * @param activityId
+ * @param gearId - uuid field from GearData
+ * @return GearData - the unlinked gear item data
+ */
+async unlinkGearFromActivity(
+    activityId: GCActivityId,
+    gearId: GCGearId
+): Promise<GearData>
+```
+
+## GPX and Courses
+
+````js
+/**
+ * Imports GPX file content
+ *
+ * @example ./examples/example-gpx-file.js
+ * @param fileName - Name of the GPX file
+ * @param fileContent - Content of the GPX file as string
+ * @returns Response from the GPX import operation containing courseName, geoPoints, and coursePoints
+ *
+ * @example
+ * ```js
+ * const fileContent = await fs.readFile('paris-marathon.gpx', 'utf8');
+ * const response = await GCClient.importGpx('paris-marathon.gpx', fileContent);
+ * // The response contains courseName, geoPoints, and coursePoints that can be used with createCourse
+ * ```
+ */
+async importGpx(
+    fileName: string,
+    fileContent: string
+): Promise<ImportedGpxResponse>
+````
+
+````js
+/**
+ * Creates a course from GPX data
+ * You can get geoPoints and coursePoints from the imported GPX file response.
+ *
+ * @example ./examples/example-gpx-file.js
+ * @param activityType - Type of activity for the course
+ * @param courseName - Name of the course
+ * @param geoPoints - Array of geographical points making up the course
+ * @param coursePoints - Optional array of course points (waypoints)
+ * @returns Response from the course creation operation containing the courseId
+ *
+ * @example
+ * ```js
+ * // First import GPX to get geoPoints and coursePoints
+ * const response = await GCClient.importGpx('course.gpx', gpxFileContent);
+ *
+ * // Then create the course
+ * const createCourseResponse = await GCClient.createCourse(
+ *     1,  // activityType (1 = running)
+ *     response.courseName,
+ *     response.geoPoints,
+ *     response.coursePoints
+ * );
+ *
+ * console.log('Course created with id:', createCourseResponse.courseId);
+ * ```
+ */
+async createCourse(
+    activityType: GpxActivityType,
+    courseName: string,
+    geoPoints: GeoPoint[],
+    coursePoints: CoursePoint[] = []
+)
+````
+
+````js
+/**
+ * Lists all courses
+ * @returns List of courses in ListCoursesResponse format
+ *
+ * @example
+ * ```js
+ * const listCourses = await GCClient.listCourses();
+ * console.log(
+ *     'Last course:',
+ *     listCourses.coursesForUser[0].courseId,
+ *     listCourses.coursesForUser[0].courseName
+ * );
+ * ```
+ */
+async listCourses(): Promise<ListCoursesResponse>
+````
+
+````js
+/**
+ * Exports a course as GPX file content
+ * @param courseId - ID of the course to export
+ * @returns GPX file content as string
+ *
+ * @example
+ * ```js
+ * const downloadGpx = await GCClient.exportCourseAsGpx(courseId);
+ * console.log('Downloaded GPX size:', downloadGpx.length);
+ * ```
+ */
+async exportCourseAsGpx(courseId: number): Promise<string>
+````
+
+## Calendar
+
+```js
+/**
+ * Retrieves calendar events for a specific year.
+ * @param year {number} - The year for which to retrieve calendar events.
+ */
+async getYearCalendarEvents(year: number): Promise<YearCalendar>
+```
+
+```js
+/**
+ * Retrieves calendar events for a specific month and year.
+ * @param year {number} - The year for which to retrieve calendar events.
+ * @param month {number} - The month (0-11) for which to retrieve calendar events.
+ */
+async getMonthCalendarEvents(
+    year: number,
+    month: number
+): Promise<MonthCalendar>
+```
+
+```js
+/**
+ * Retrieves calendar events for a specific week containing the given date.
+ * @param year {number} - The year of the date.
+ * @param month {number} - The month (0-11) of the date.
+ * @param day {number} - The day of the first day of the week.
+ * @param firstDayOfWeek {number} - Optional first day of the week, default is 1
+ */
+async getWeekCalendarEvents(
+    year: number,
+    month: number,
+    day: number,
+    firstDayOfWeek?: number
+): Promise<any>
+```
+
+## Custom Requests
+
+The library provides methods for making custom requests to the Garmin Connect API:
+
+```js
+/**
+ * Performs a GET request to the specified URL
+ * @param url - URL to send the request to
+ * @param data - Optional query parameters or request configuration
+ * @returns Response data of type T
+ */
+async get<T>(url: string, data?: any)
+```
+
+```js
+/**
+ * Performs a POST request to the specified URL
+ * @param url - URL to send the request to
+ * @param data - Data to send in the request body
+ * @returns Response data of type T
+ */
+async post<T>(url: string, data: any)
+```
+
+```js
+/**
+ * Performs a PUT request to the specified URL
+ * @param url - URL to send the request to
+ * @param data - Data to send in the request body
+ * @returns Response data of type T
+ */
+async put<T>(url: string, data: any)
+```
