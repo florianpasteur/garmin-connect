@@ -474,9 +474,34 @@ export interface IDailyStepsType {
 }
 
 // Export other types
-export * from './activity';
-export * from './gear';
-export * from './gpx';
-export * from './sleep';
-export * from './workout';
-export * from './calendar';
+export {
+    GCActivityId,
+    ActivityType,
+    ActivitySubType,
+    IActivity,
+    IActivityDetails
+} from './activity';
+
+export { GearData } from './gear';
+
+export {
+    GpxActivityType,
+    ImportedGpxResponse,
+    CreatedCourseResponse,
+    CourseRequest,
+    CoursePoint,
+    CourseLine,
+    GeoPoint,
+    ListCoursesResponse
+} from './gpx';
+export {
+    SleepDTO,
+    SleepMovement,
+    SleepLevels,
+    WellnessEpochRespirationDataDTO,
+    SleepHeartRate,
+    SleepBodyBattery,
+    SleepData
+} from './sleep';
+export { Workout } from './workout';
+export { YearCalendar, MonthCalendar, WeekCalendar } from './calendar';
