@@ -9,6 +9,7 @@ import { HttpClient } from '../common/HttpClient';
 import { checkIsDirectory, createDirectory, writeToFile } from '../utils';
 import { UrlClass } from './UrlClass';
 import {
+    CreatedCourseResponse,
     ExportFileTypeValue,
     GarminDomain,
     GCGearId,
@@ -839,7 +840,7 @@ export default class GarminConnect {
         courseName: string,
         geoPoints: GeoPoint[],
         coursePoints: CoursePoint[] = []
-    ) {
+    ): Promise<CreatedCourseResponse> {
         return await this.client.post(
             this.url.CREATE_COURSE_GPX_FILE,
             courseRequestTemplate(

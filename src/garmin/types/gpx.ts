@@ -54,6 +54,110 @@ export interface ImportedGpxResponse {
     geoPoints: GeoPoint[];
 }
 
+export interface CreatedCourseResponse {
+    courseId: number;
+    courseName: string;
+    description: string | null;
+    openStreetMap: boolean;
+    matchedToSegments: boolean;
+    userProfilePk: number;
+    userGroupPk: number | null;
+    rulePK: number;
+    firstName: string;
+    lastName: string | null;
+    displayName: string;
+    geoRoutePk: number | null;
+    sourceTypeId: number;
+    sourcePk: number;
+    distanceMeter: number;
+    elevationGainMeter: number;
+    elevationLossMeter: number;
+
+    startPoint: {
+        latitude: number;
+        longitude: number;
+        elevation: number;
+        distance: number | null;
+        timestamp: number;
+    };
+
+    coursePoints: {
+        coursePointId: number;
+        name: string;
+        coursePk: number;
+        coursePointType: string;
+        lon: number;
+        lat: number;
+        distance: number;
+        elevation: number;
+        derivedElevation: number;
+        timestamp: number;
+        createdDate: string;
+        modifiedDate: string;
+        uuid: string | null;
+        note: string | null;
+        cutoffDuration: number | null;
+        restDuration: number | null;
+    }[];
+
+    boundingBox: {
+        center: unknown;
+        lowerLeft: {
+            latitude: number;
+            longitude: number;
+        };
+        upperRight: {
+            latitude: number;
+            longitude: number;
+        };
+        lowerLeftLatIsSet: boolean;
+        lowerLeftLongIsSet: boolean;
+        upperRightLatIsSet: boolean;
+        upperRightLongIsSet: boolean;
+    };
+
+    hasShareableEvent: boolean | null;
+    hasTurnDetectionDisabled: boolean;
+    activityTypePk: number;
+    virtualPartnerId: number;
+    includeLaps: boolean;
+    elapsedSeconds: number | null;
+    speedMeterPerSecond: number | null;
+    createDate: string;
+    updateDate: string;
+
+    courseLines: {
+        courseId: number;
+        sortOrder: number;
+        numberOfPoints: number;
+        distanceInMeters: number;
+        bearing: number;
+        points: unknown;
+        coordinateSystem: string | null;
+        originalCoordinateSystem: string | null;
+    }[];
+
+    coordinateSystem: string;
+    targetCoordinateSystem: string;
+    originalCoordinateSystem: string;
+    consumer: unknown;
+    elevationSource: number;
+    hasPaceBand: boolean;
+    hasPowerGuide: boolean;
+    favorite: boolean;
+    startNote: string | null;
+    finishNote: string | null;
+    cutoffDuration: number | null;
+
+    geoPoints: {
+        latitude: number;
+        longitude: number;
+        elevation: number;
+        distance: number | null;
+        timestamp: number;
+    }[];
+}
+
 export interface CourseRequest {
     activityTypePk: GpxActivityType;
     hasTurnDetectionDisabled: boolean;
