@@ -818,8 +818,7 @@ export default class GarminConnect {
 
         return await this.client.post(this.url.IMPORT_GPX_FILE, form, {
             headers: {
-                'Content-Type': form.getHeaders()['content-type'],
-                'Content-Length': form.getLengthSync()
+                ...form.getHeaders()
             }
         });
     }
