@@ -3,7 +3,7 @@ name: Release Package
 on:
     push:
         branches:
-            - florian
+            - main
         # Prevent triggering on tag pushes
         tags-ignore:
             - 'v*'
