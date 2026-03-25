@@ -156,7 +156,7 @@ export class UrlClass {
         return `${this.GC_API}/course-service/course`;
     }
 
-    UPDATE_COURSE_GPX_FILE(courseId: number) {
+    SINGLE_COURSE(courseId: number | string) {
         return `${this.GC_API}/course-service/course/${courseId}`;
     }
 

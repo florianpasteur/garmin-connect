@@ -44,6 +44,7 @@ import {
 import { GearData } from './types/gear';
 import { Workout } from './types/workout';
 import {
+    CourseDetailsResponse,
     CoursePoint,
     GeoPoint,
     GpxActivityType,
@@ -859,6 +860,18 @@ export default class GarminConnect {
      */
     async listCourses(): Promise<ListCoursesResponse> {
         return this.client.get<ListCoursesResponse>(this.url.LIST_COURSES);
+    }
+
+    /**
+     * Get the details of a course
+     * @returns Course details
+     */
+    async getCourseDetails(
+        courseId: string | number
+    ): Promise<CourseDetailsResponse> {
+        return this.client.get<CourseDetailsResponse>(
+            this.url.SINGLE_COURSE(courseId)
+        );
     }
 
     /**

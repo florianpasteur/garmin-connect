@@ -51,4 +51,8 @@ const GPX_FILE_FOLDER = './assets/';
         createCourseResponse.courseId
     );
     console.log('Downloaded GPX size:', downloadGpx.length);
+
+    const utmbCourse = await GCClient.getCourseDetails(123456789);
+
+    console.log('Course name', utmbCourse.courseName);
 })();

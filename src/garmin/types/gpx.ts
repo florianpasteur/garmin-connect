@@ -280,3 +280,90 @@ export interface ListCoursesResponse {
         imageURL: string;
     }[];
 }
+
+export type CourseDetailsResponse = {
+    courseId: number;
+    courseName: string;
+    description: string | null;
+    openStreetMap: boolean;
+    matchedToSegments: boolean;
+    userProfilePk: number;
+    userGroupPk: number | null;
+    rulePK: number;
+    firstName: string;
+    lastName: string;
+    displayName: string;
+    geoRoutePk: number;
+    sourceTypeId: number;
+    sourcePk: number | null;
+    distanceMeter: number;
+    elevationGainMeter: number;
+    elevationLossMeter: number;
+
+    startPoint: {
+        latitude: number;
+        longitude: number;
+        elevation: number;
+        distance: number | null;
+        timestamp: number | null;
+    };
+
+    coursePoints: any | null;
+
+    boundingBox: {
+        center: any | null;
+        lowerLeft: {
+            latitude: number;
+            longitude: number;
+        };
+        upperRight: {
+            latitude: number;
+            longitude: number;
+        };
+        lowerLeftLatIsSet: boolean;
+        lowerLeftLongIsSet: boolean;
+        upperRightLatIsSet: boolean;
+        upperRightLongIsSet: boolean;
+    };
+
+    hasShareableEvent: boolean;
+    hasTurnDetectionDisabled: boolean;
+    activityTypePk: number;
+    virtualPartnerId: number;
+    includeLaps: boolean;
+    elapsedSeconds: number | null;
+    speedMeterPerSecond: number | null;
+    createDate: string;
+    updateDate: string;
+
+    courseLines: {
+        courseId: number;
+        sortOrder: number;
+        numberOfPoints: number;
+        distanceInMeters: number;
+        bearing: number;
+        points: any | null;
+        coordinateSystem: string | null;
+        originalCoordinateSystem: string | null;
+    }[];
+
+    coordinateSystem: string;
+    targetCoordinateSystem: string;
+    originalCoordinateSystem: string;
+    consumer: any | null;
+    elevationSource: number;
+    hasPaceBand: boolean;
+    hasPowerGuide: boolean;
+    favorite: boolean;
+    startNote: string | null;
+    finishNote: string | null;
+    cutoffDuration: number | null;
+
+    geoPoints: {
+        latitude: number;
+        longitude: number;
+        elevation: number;
+        distance: number;
+        timestamp: number;
+    }[];
+};
