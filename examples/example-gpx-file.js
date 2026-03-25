@@ -55,4 +55,6 @@ const GPX_FILE_FOLDER = './assets/';
     const utmbCourse = await GCClient.getCourseDetails(123456789);
 
     console.log('Course name', utmbCourse.courseName);
+
+    await GCClient.updateCoursePrivacy(utmbCourse.courseId, 1);
 })();

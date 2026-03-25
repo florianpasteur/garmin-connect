@@ -125,18 +125,18 @@ export class HttpClient {
         return response?.data;
     }
 
-    async post<T>(
+    async post<T, R = any>(
         url: string,
-        data: any,
+        data: R,
         config?: AxiosRequestConfig<any>
     ): Promise<T> {
         const response = await this.client.post<T>(url, data, config);
         return response?.data;
     }
 
-    async put<T>(
+    async put<T, R = any>(
         url: string,
-        data: any,
+        data: R,
         config?: AxiosRequestConfig<any>
     ): Promise<T> {
         const response = await this.client.put<T>(url, data, config);

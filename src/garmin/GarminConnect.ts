@@ -9,6 +9,7 @@ import { HttpClient } from '../common/HttpClient';
 import { checkIsDirectory, createDirectory, writeToFile } from '../utils';
 import { UrlClass } from './UrlClass';
 import {
+    CoursePrivacyRule,
     CreatedCourseResponse,
     ExportFileTypeValue,
     GarminDomain,
@@ -44,6 +45,7 @@ import {
 import { GearData } from './types/gear';
 import { Workout } from './types/workout';
 import {
+    CourseDetailsRequest,
     CourseDetailsResponse,
     CoursePoint,
     GeoPoint,
@@ -834,13 +836,15 @@ export default class GarminConnect {
      * @param courseName - Name of the course
      * @param geoPoints - Array of geographical points making up the course
      * @param coursePoints - Optional array of course points (waypoints)
+     * @param privacy - Optional privacy setting for the course, defaults to PRIVATE (2). Use CoursePrivacyRule.PUBLIC (1) for public courses.
      * @returns Response from the course creation operation
      */
     async createCourse(
         activityType: GpxActivityType,
         courseName: string,
         geoPoints: GeoPoint[],
-        coursePoints: CoursePoint[] = []
+        coursePoints: CoursePoint[] = [],
+        privacy: CoursePrivacyRule = CoursePrivacyRule.PRIVATE
     ): Promise<CreatedCourseResponse> {
         return await this.client.post(
             this.url.CREATE_COURSE_GPX_FILE,
@@ -848,7 +852,8 @@ export default class GarminConnect {
                 activityType,
                 courseName,
                 geoPoints,
-                coursePoints
+                coursePoints,
+                privacy
             ),
             {}
         );
@@ -864,6 +869,7 @@ export default class GarminConnect {
 
     /**
      * Get the details of a course
+     * @param courseId - Course id
      * @returns Course details
      */
     async getCourseDetails(
@@ -871,6 +877,26 @@ export default class GarminConnect {
     ): Promise<CourseDetailsResponse> {
         return this.client.get<CourseDetailsResponse>(
             this.url.SINGLE_COURSE(courseId)
+        );
+    }
+
+    /**
+     * Edit course privacy
+     * @param courseId - Course Id
+     * @param privacy - Privacy setting for the course, use CoursePrivacyRule.PUBLIC (1) for public courses or CoursePrivacyRule.PRIVATE (2) for private courses. Defaults to PRIVATE.
+     * @returns Course details
+     */
+    async updateCoursePrivacy(
+        courseId: string | number,
+        privacy: CoursePrivacyRule = CoursePrivacyRule.PRIVATE
+    ): Promise<CourseDetailsResponse> {
+        const courseDetails = await this.getCourseDetails(courseId);
+        return this.client.put<CourseDetailsResponse, CourseDetailsRequest>(
+            this.url.SINGLE_COURSE(courseId),
+            {
+                ...courseDetails,
+                rulePK: privacy
+            }
         );
     }
 

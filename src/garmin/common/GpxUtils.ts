@@ -1,5 +1,6 @@
 import {
     CoursePoint,
+    CoursePrivacyRule,
     CourseRequest,
     GeoPoint,
     GpxActivityType
@@ -9,7 +10,8 @@ export function courseRequestTemplate(
     activityType: GpxActivityType,
     courseName: string,
     geoPoints: GeoPoint[],
-    coursePoints: CoursePoint[] = []
+    coursePoints: CoursePoint[] = [],
+    privacy: CoursePrivacyRule = CoursePrivacyRule.PRIVATE
 ): CourseRequest {
     return {
         activityTypePk: activityType,
@@ -21,7 +23,7 @@ export function courseRequestTemplate(
         elapsedSeconds: null,
         openStreetMap: false,
         coordinateSystem: 'WGS84',
-        rulePK: 2,
+        rulePK: privacy,
         courseName: courseName,
         matchedToSegments: false,
         includeLaps: false,

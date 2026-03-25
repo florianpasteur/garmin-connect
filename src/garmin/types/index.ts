@@ -492,7 +492,9 @@ export {
     CoursePoint,
     CourseLine,
     GeoPoint,
-    ListCoursesResponse
+    ListCoursesResponse,
+    CoursePrivacyRule,
+    CourseDetailsResponse
 } from './gpx';
 export {
     SleepDTO,

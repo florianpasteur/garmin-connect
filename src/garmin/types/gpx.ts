@@ -9,6 +9,11 @@ export enum GpxActivityType {
     Other = 4
 }
 
+export enum CoursePrivacyRule {
+    PUBLIC = 1,
+    PRIVATE = 2
+}
+
 export interface ImportedGpxResponse {
     courseId: number | null;
     courseName: string | null;
@@ -168,7 +173,7 @@ export interface CourseRequest {
     elapsedSeconds: number | null;
     openStreetMap: boolean;
     coordinateSystem: string;
-    rulePK: number;
+    rulePK: CoursePrivacyRule;
     courseName: string;
     matchedToSegments: boolean;
     includeLaps: boolean;
@@ -367,3 +372,5 @@ export type CourseDetailsResponse = {
         timestamp: number;
     }[];
 };
+
+export type CourseDetailsRequest = CourseDetailsResponse;
