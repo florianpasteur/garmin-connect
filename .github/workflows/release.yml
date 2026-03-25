@@ -49,11 +49,8 @@ jobs:
             #                  git push origin florian
             #                  git push origin --tags
 
-            - name: Npm login check
-              run: npm whoami
-
             - name: Github check
               run: echo $GITHUB_REPOSITORY
 
             - name: Publish to npm
-              run: npm publish --access public
+              run: npm publish --provenance --access public
