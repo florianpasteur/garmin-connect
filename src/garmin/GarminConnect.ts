@@ -901,6 +901,40 @@ export default class GarminConnect {
     }
 
     /**
+     * Rename course
+     * @param courseId - Course Id
+     * @param courseName - The new course nname
+     * @returns Course details
+     */
+    async renameCourse(
+        courseId: string | number,
+        courseName: string
+    ): Promise<CourseDetailsResponse> {
+        const courseDetails = await this.getCourseDetails(courseId);
+        return this.client.put<CourseDetailsResponse, CourseDetailsRequest>(
+            this.url.SINGLE_COURSE(courseId),
+            {
+                ...courseDetails,
+                courseName
+            }
+        );
+    }
+
+    /**
+     * Complete update of course
+     * @param courseRequest - the full data of course. Use getCourseDetails to get the existing set
+     * @returns Course details updated
+     */
+    async updateCourse(
+        courseRequest: CourseDetailsRequest
+    ): Promise<CourseDetailsResponse> {
+        return this.client.put<CourseDetailsResponse, CourseDetailsRequest>(
+            this.url.SINGLE_COURSE(courseRequest.courseId),
+            courseRequest
+        );
+    }
+
+    /**
      * Exports a course as GPX file content
      * @param courseId - ID of the course to export
      * @returns GPX file content as string
