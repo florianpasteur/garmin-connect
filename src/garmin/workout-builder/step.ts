@@ -1,4 +1,5 @@
 import { Duration, NoDuration } from './duration';
+import { Exercise } from './exercise';
 import { NoTarget, Target } from './target';
 
 export class Step {
@@ -6,12 +7,12 @@ export class Step {
         private stepType: StepType,
         private duration: Duration = new NoDuration(),
         private target: Target = new NoTarget(),
-        private notes: string = ''
+        private notes: string = '',
+        private exercise?: Exercise
     ) {}
 
     build(index: number) {
         return {
-            category: null,
             childStepId: null,
             description: this.notes,
             equipmentType: {
@@ -19,7 +20,6 @@ export class Step {
                 equipmentTypeId: null,
                 equipmentTypeKey: null
             },
-            exerciseName: null,
             preferredEndConditionUnit: null,
             providerExerciseSourceId: null,
             secondaryTargetType: null,
@@ -35,14 +35,18 @@ export class Step {
             targetValueTwo: null,
             targetValueUnit: null,
             type: 'ExecutableStepDTO',
-            weightUnit: null,
-            weightValue: null,
             workoutProvider: null,
             zoneNumber: null,
 
             ...this.stepType.build(),
             ...this.duration.build(),
-            ...this.target.build()
+            ...this.target.build(),
+            ...(this.exercise?.build() ?? {
+                category: null,
+                exerciseName: null,
+                weightValue: null,
+                weightUnit: null
+            })
         };
     }
 }
@@ -62,6 +66,7 @@ export class StepType {
 
     static WarmUp = new StepType('warmup', 1);
     static Run = new StepType('interval', 3);
+    static Exercise = new StepType('interval', 3);
     static Recovery = new StepType('recovery', 4);
     static Rest = new StepType('rest', 5);
     static Cooldown = new StepType('cooldown', 2);

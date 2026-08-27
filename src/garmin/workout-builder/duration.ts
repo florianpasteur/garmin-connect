@@ -77,6 +77,10 @@ export class DistanceDuration extends Duration {
 }
 
 export class LapPressDuration extends Duration {
+    constructor(private readonly endConditionValue: number | null = null) {
+        super();
+    }
+
     build() {
         return {
             endCondition: {
@@ -85,7 +89,31 @@ export class LapPressDuration extends Duration {
                 displayOrder: 1,
                 displayable: true
             },
-            endConditionValue: null,
+            endConditionValue: this.endConditionValue,
+            preferredEndConditionUnit: null,
+            endConditionCompare: null
+        };
+    }
+}
+
+export class RepsDuration extends Duration {
+    constructor(private readonly reps: number) {
+        super();
+    }
+
+    static fromReps(reps: number) {
+        return new RepsDuration(reps);
+    }
+
+    build() {
+        return {
+            endCondition: {
+                conditionTypeId: 10,
+                conditionTypeKey: 'reps',
+                displayOrder: 10,
+                displayable: true
+            },
+            endConditionValue: this.reps,
             preferredEndConditionUnit: null,
             endConditionCompare: null
         };

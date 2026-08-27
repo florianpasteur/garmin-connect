@@ -425,12 +425,12 @@ export interface IWorkoutStep {
     endConditionZone: null;
     strokeType: IStrokeType;
     equipmentType: IEquipmentType;
-    category: null;
-    exerciseName: null;
+    category: string | null;
+    exerciseName: string | null;
     workoutProvider: null;
     providerExerciseSourceId: null;
-    weightValue: null;
-    weightUnit: null;
+    weightValue: number | null;
+    weightUnit: { unitKey: string } | null;
 }
 
 export interface IEndCondition {

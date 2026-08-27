@@ -9,6 +9,7 @@
         "build:windows": "tsc --build --clean && tsc",
         "build:watch": "npm run build -- --watch",
         "build:watch-windows": "npm run build:windows -- --watch",
+        "generate:exercises": "node scripts/generate-exercise-catalog.mjs",
         "prettier:all": "prettier --write .",
         "pretty": "pretty-quick --staged",
         "prepack": "npm run build"
