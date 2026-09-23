@@ -13,6 +13,7 @@ This document provides detailed information about the public API methods availab
 -   [Authentication](#authentication)
     -   [Constructor](#constructor)
     -   [Login](#login)
+    -   [Multi-Factor Authentication (MFA)](#multi-factor-authentication-mfa)
     -   [Session Management](#session-management)
 -   [User Data](#user-data)
     -   [User Profile](#user-profile)
@@ -72,9 +73,17 @@ You can also provide a configuration file named `garmin.config.json` at your pro
  * Login to Garmin Connect with provided credentials or those set during construction
  * @param username - Optional username to override the one in credentials
  * @param password - Optional password to override the one in credentials
+ * @param options - Optional login options (see MFA below)
  * @returns The GarminConnect instance for chaining
  */
-async login(username?: string, password?: string): Promise<GarminConnect>
+async
+login(
+    username ? : string,
+    password ? : string,
+    options ? : LoginOptions
+)
+:
+Promise < GarminConnect >
 ```
 
 Example:
@@ -84,6 +93,68 @@ await GCClient.login();
 // Or with specific credentials
 await GCClient.login('my.email@example.com', 'MySecretPassword');
 ```
+
+### Multi-Factor Authentication (MFA)
+
+If your Garmin account has 2FA / MFA enabled, login will fail unless you supply an
+`mfaHandler` callback. When Garmin responds with `MFA_REQUIRED`, the library calls your handler, waits for the
+verification code (email or authenticator app), and completes the login.
+
+```js
+/**
+ * @property mfaHandler - Async function that resolves to the MFA verification code.
+ *   Required for accounts with 2FA enabled. If MFA is required and this is omitted,
+ *   login throws: "MFA required but no mfaHandler provided".
+ */
+interface LoginOptions {
+    mfaHandler?: () => Promise<string>;
+}
+```
+
+Example (prompt for the code in a Node.js CLI):
+
+```js
+const readline = require('readline');
+const { GarminConnect } = require('@flow-js/garmin-connect');
+
+const promptMfaCode = () =>
+    new Promise((resolve) => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        rl.question('Enter MFA code: ', (code) => {
+            rl.close();
+            resolve(code);
+        });
+    });
+
+const GCClient = new GarminConnect({
+    username: 'my.email@example.com',
+    password: 'MySecretPassword'
+});
+
+await GCClient.login(undefined, undefined, {
+    mfaHandler: promptMfaCode
+});
+```
+
+You can also pass credentials and the MFA handler together:
+
+```js
+await GCClient.login('my.email@example.com', 'MySecretPassword', {
+    mfaHandler: async () => {
+        // Fetch or prompt for the code (email / authenticator app)
+        return '123456';
+    }
+});
+```
+
+After a successful MFA login, export the OAuth tokens (see [Session Management](#session-management))
+and reuse them with `loadToken` / `loadTokenByFile` on later runs so you do not need to enter an MFA code every time.
+Tokens obtained via MFA may include `mfa_token` and
+`mfa_expiration_timestamp` on the OAuth1 token; these are preserved across
+`exportToken()` / `loadToken()` round-trips.
 
 ### Session Management
 
