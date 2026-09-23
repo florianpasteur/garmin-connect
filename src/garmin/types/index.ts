@@ -218,6 +218,15 @@ export interface Gear {
     updateDate: string;
 }
 
+export interface LoginOptions {
+    /**
+     * Async handler invoked when Garmin requires multi-factor authentication.
+     * Should resolve to the MFA code (e.g. emailed or app-generated). Required
+     * to log in on a 2FA-enabled account.
+     */
+    mfaHandler?: () => Promise<string>;
+}
+
 export interface IOauth1Consumer {
     key: string;
     secret: string;
@@ -234,6 +243,9 @@ export interface IGarminTokens {
 export interface IOauth1Token {
     oauth_token: string;
     oauth_token_secret: string;
+    // Present when the token was obtained through an MFA login.
+    mfa_token?: string;
+    mfa_expiration_timestamp?: string;
 }
 
 export interface IOauth2Token {

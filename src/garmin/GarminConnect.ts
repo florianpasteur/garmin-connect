@@ -21,6 +21,7 @@ import {
     IOauth1Token,
     IOauth2Token,
     ISocialProfile,
+    LoginOptions,
     IUserSettings,
     IWorkout,
     IWorkoutDetail,
@@ -104,16 +105,22 @@ export default class GarminConnect {
      * Login to Garmin Connect with provided credentials or those set during construction
      * @param username - Optional username to override the one in credentials
      * @param password - Optional password to override the one in credentials
+     * @param options - Optional login options, e.g. an `mfaHandler` for 2FA accounts
      * @returns The GarminConnect instance for chaining
      */
-    async login(username?: string, password?: string): Promise<GarminConnect> {
+    async login(
+        username?: string,
+        password?: string,
+        options?: LoginOptions
+    ): Promise<GarminConnect> {
         if (username && password) {
             this.credentials.username = username;
             this.credentials.password = password;
         }
         await this.client.login(
             this.credentials.username,
-            this.credentials.password
+            this.credentials.password,
+            options
         );
         return this;
     }

@@ -4,7 +4,6 @@ import axios, {
     AxiosResponse,
     RawAxiosRequestHeaders
 } from 'axios';
-import FormData from 'form-data';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import OAuth from 'oauth-1.0a';
@@ -14,18 +13,44 @@ import {
     IOauth1,
     IOauth1Consumer,
     IOauth1Token,
-    IOauth2Token
+    IOauth2Token,
+    LoginOptions
 } from '../garmin/types';
 const crypto = require('crypto');
 
-const CSRF_RE = new RegExp('name="_csrf"\\s+value="(.+?)"');
-const TICKET_RE = new RegExp('ticket=([^"]+)"');
-const ACCOUNT_LOCKED_RE = new RegExp('var statuss*=s*"([^"]*)"');
-const PAGE_TITLE_RE = new RegExp('<title>([^<]*)</title>');
-
 const USER_AGENT_CONNECTMOBILE = 'com.garmin.android.apps.connectmobile';
-const USER_AGENT_BROWSER =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36';
+
+// Mobile SSO client id — must pair with the Android OAuth consumer key from S3.
+const MOBILE_CLIENT_ID = 'GCM_ANDROID_DARK';
+// The mobile SSO endpoints run in a WebView and expect browser-like headers.
+const SSO_USER_AGENT =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+const SSO_PAGE_HEADERS = {
+    'User-Agent': SSO_USER_AGENT,
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Dest': 'document'
+};
+// responseStatus.type values returned by the mobile SSO API.
+const SSO_SUCCESSFUL = 'SUCCESSFUL';
+const SSO_MFA_REQUIRED = 'MFA_REQUIRED';
+
+interface ISSOResponse {
+    serviceURL: string | null;
+    serviceTicketId: string | null;
+    responseStatus: {
+        type: string;
+        message: string;
+        httpStatus: string;
+    };
+    customerMfaInfo?: {
+        email?: string | null;
+        phoneNumber?: string | null;
+        mfaLastMethodUsed?: string | null;
+        defaultMfaMethod?: string | null;
+    } | null;
+}
 
 const OAUTH_CONSUMER_URL =
     'https://thegarth.s3.amazonaws.com/oauth_consumer.json';
@@ -39,10 +64,25 @@ export class HttpClient {
     oauth1Token: IOauth1Token | undefined;
     oauth2Token: IOauth2Token | undefined;
     OAUTH_CONSUMER: IOauth1Consumer | undefined;
+    // Minimal in-memory cookie jar. Garmin's SSO carries the login session in
+    // cookies, and the MFA verify step requires the same session that received
+    // the challenge. axios does not persist cookies on its own, so we replay
+    // them between requests via the interceptors below.
+    private cookies: Record<string, string> = {};
 
     constructor(url: UrlClass) {
         this.url = url;
         this.client = axios.create();
+        this.client.interceptors.response.use(
+            (response) => {
+                this.storeCookies(response.headers?.['set-cookie']);
+                return response;
+            },
+            (error) => {
+                this.storeCookies(error?.response?.headers?.['set-cookie']);
+                return Promise.reject(error);
+            }
+        );
         this.client.interceptors.response.use(
             (response) => response,
             async (error) => {
@@ -99,8 +139,35 @@ export class HttpClient {
                 config.headers.Authorization =
                     'Bearer ' + this.oauth2Token.access_token;
             }
+            const cookieHeader = this.getCookieHeader();
+            if (cookieHeader) {
+                config.headers.Cookie = cookieHeader;
+            }
             return config;
         });
+    }
+
+    private storeCookies(setCookie?: string[]): void {
+        if (!setCookie) {
+            return;
+        }
+        for (const entry of setCookie) {
+            // "NAME=VALUE; Path=/; ..." — keep only the NAME=VALUE pair.
+            const [pair] = entry.split(';');
+            const idx = pair.indexOf('=');
+            if (idx <= 0) {
+                continue;
+            }
+            const name = pair.slice(0, idx).trim();
+            const value = pair.slice(idx + 1).trim();
+            this.cookies[name] = value;
+        }
+    }
+
+    private getCookieHeader(): string {
+        return Object.entries(this.cookies)
+            .map(([name, value]) => `${name}=${value}`)
+            .join('; ');
     }
 
     async fetchOauthConsumer() {
@@ -177,126 +244,135 @@ export class HttpClient {
      * Login to Garmin Connect
      * @param username
      * @param password
+     * @param options - optional login options, e.g. an `mfaHandler` for 2FA accounts
      * @returns {Promise<HttpClient>}
      */
-    async login(username: string, password: string): Promise<HttpClient> {
+    async login(
+        username: string,
+        password: string,
+        options?: LoginOptions
+    ): Promise<HttpClient> {
         await this.fetchOauthConsumer();
-        // Step1-3: Get ticket from page.
-        const ticket = await this.getLoginTicket(username, password);
-        // Step4: Oauth1
+        // Get a service ticket via the mobile SSO API (handles MFA if required).
+        const ticket = await this.getLoginTicket(username, password, options);
+        // Exchange the ticket for an OAuth1 token...
         const oauth1 = await this.getOauth1Token(ticket);
-        // TODO: Handle MFA
-
-        // Step 5: Oauth2
+        // ...then exchange OAuth1 for the OAuth2 token used by the API.
         await this.exchange(oauth1);
         return this;
     }
 
+    /**
+     * Obtains a login service ticket via Garmin's mobile SSO JSON API.
+     *
+     * This mirrors the modern Garmin Connect mobile app flow (and garth):
+     * 1. GET the sign-in page to seed SSO session cookies.
+     * 2. POST credentials as JSON to `/sso/mobile/api/login`.
+     * 3. If the response status is MFA_REQUIRED, prompt for and verify the code.
+     *
+     * @see https://github.com/matin/garth/blob/main/src/garth/sso.py (login)
+     *
+     * @returns the `serviceTicketId` used to obtain the OAuth1 token.
+     */
     private async getLoginTicket(
         username: string,
-        password: string
+        password: string,
+        options?: LoginOptions
     ): Promise<string> {
-        // Step1: Set cookie
-        const step1Params = {
-            clientId: 'GarminConnect',
-            locale: 'en',
-            service: this.url.GC_MODERN
+        const loginParams = {
+            clientId: MOBILE_CLIENT_ID,
+            locale: 'en-US',
+            service: this.url.MOBILE_SERVICE_URL
         };
-        const step1Url = `${this.url.GARMIN_SSO_EMBED}?${qs.stringify(
-            step1Params
-        )}`;
-        // console.log('login - step1Url:', step1Url);
-        await this.client.get(step1Url);
 
-        // Step2 Get _csrf
-        const step2Params = {
-            id: 'gauth-widget',
-            embedWidget: true,
-            locale: 'en',
-            gauthHost: this.url.GARMIN_SSO_EMBED
-        };
-        const step2Url = `${this.url.SIGNIN_URL}?${qs.stringify(step2Params)}`;
-        // console.log('login - step2Url:', step2Url);
-        const step2Result = await this.get<string>(step2Url);
-        // console.log('login - step2Result:', step2Result)
-        const csrfRegResult = CSRF_RE.exec(step2Result);
-        if (!csrfRegResult) {
-            throw new Error('login - csrf not found');
-        }
-        const csrf_token = csrfRegResult[1];
-        // console.log('login - csrf:', csrf_token);
-
-        // Step3 Get ticket
-        const signinParams = {
-            id: 'gauth-widget',
-            embedWidget: true,
-            clientId: 'GarminConnect',
-            locale: 'en',
-            gauthHost: this.url.GARMIN_SSO_EMBED,
-            service: this.url.GARMIN_SSO_EMBED,
-            source: this.url.GARMIN_SSO_EMBED,
-            redirectAfterAccountLoginUrl: this.url.GARMIN_SSO_EMBED,
-            redirectAfterAccountCreationUrl: this.url.GARMIN_SSO_EMBED
-        };
-        const step3Url = `${this.url.SIGNIN_URL}?${qs.stringify(signinParams)}`;
-        // console.log('login - step3Url:', step3Url);
-        const step3Form = new FormData();
-        step3Form.append('username', username);
-        step3Form.append('password', password);
-        step3Form.append('embed', 'true');
-        step3Form.append('_csrf', csrf_token);
-        const step3Result = await this.post<string>(step3Url, step3Form, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Dnt: 1,
-                Origin: this.url.GARMIN_SSO_ORIGIN,
-                Referer: this.url.SIGNIN_URL,
-                'User-Agent': USER_AGENT_BROWSER
+        // Step1: Seed SSO session cookies.
+        await this.get<string>(
+            `${this.url.MOBILE_SSO_SIGNIN_PAGE}?${qs.stringify({
+                clientId: MOBILE_CLIENT_ID
+            })}`,
+            {
+                headers: { ...SSO_PAGE_HEADERS, 'Sec-Fetch-Site': 'none' }
             }
-        });
-        // console.log('step3Result:', step3Result)
-        this.handleAccountLocked(step3Result);
-        this.handlePageTitle(step3Result);
-        this.handleMFA(step3Result);
+        );
 
-        const ticketRegResult = TICKET_RE.exec(step3Result);
-        if (!ticketRegResult) {
-            throw new Error(
-                'login failed (Ticket not found or MFA), please check username and password'
-            );
+        // Step2: Submit credentials.
+        const loginResult = await this.post<ISSOResponse>(
+            `${this.url.MOBILE_API_LOGIN}?${qs.stringify(loginParams)}`,
+            {
+                username,
+                password,
+                rememberMe: false,
+                captchaToken: ''
+            },
+            { headers: SSO_PAGE_HEADERS }
+        );
+
+        const responseType = loginResult?.responseStatus?.type;
+
+        if (responseType === SSO_SUCCESSFUL) {
+            if (!loginResult.serviceTicketId) {
+                throw new Error('login failed - no service ticket returned');
+            }
+            return loginResult.serviceTicketId;
         }
-        const ticket = ticketRegResult[1];
-        return ticket;
+
+        if (responseType === SSO_MFA_REQUIRED) {
+            const mfaMethod =
+                loginResult.customerMfaInfo?.mfaLastMethodUsed || 'email';
+            return this.handleMFA(loginParams, mfaMethod, options);
+        }
+
+        const message = loginResult?.responseStatus?.message
+            ? `: ${loginResult.responseStatus.message}`
+            : '';
+        throw new Error(
+            `login failed (${responseType || 'unknown response'})${message}, please check username and password`
+        );
     }
 
-    // TODO: Handle MFA
-    handleMFA(htmlStr: string): void {}
-
-    // TODO: Handle Phone number
-    handlePageTitle(htmlStr: string): void {
-        const pageTitileRegResult = PAGE_TITLE_RE.exec(htmlStr);
-        if (pageTitileRegResult) {
-            const title = pageTitileRegResult[1];
-            console.log('login page title:', title);
-            if (_.includes(title, 'Update Phone Number')) {
-                // current I don't know where to update it
-                // See:  https://github.com/matin/garth/issues/19
-                throw new Error(
-                    "login failed (Update Phone number), please update your phone number, currently I don't know where to update it"
-                );
-            }
+    /**
+     * Completes the MFA challenge: prompts the caller (via `mfaHandler`) for the
+     * emailed/app code, posts it to Garmin's mobile verify endpoint, and returns
+     * the service ticket from the verification response.
+     *
+     * The SSO session cookies set during the login POST are replayed on the
+     * verify POST by the cookie interceptors, so both share the same session.
+     *
+     * @see https://github.com/matin/garth/blob/main/src/garth/sso.py (handle_mfa)
+     */
+    async handleMFA(
+        loginParams: Record<string, string>,
+        mfaMethod: string,
+        options?: LoginOptions
+    ): Promise<string> {
+        if (!options?.mfaHandler) {
+            throw new Error('MFA required but no mfaHandler provided');
         }
-    }
 
-    handleAccountLocked(htmlStr: string): void {
-        const accountLockedRegResult = ACCOUNT_LOCKED_RE.exec(htmlStr);
-        if (accountLockedRegResult) {
-            const msg = accountLockedRegResult[1];
-            console.error(msg);
-            throw new Error(
-                'login failed (AccountLocked), please open connect web page to unlock your account'
-            );
+        const code = (await options.mfaHandler()).trim();
+
+        const verifyResult = await this.post<ISSOResponse>(
+            `${this.url.MOBILE_API_VERIFY_MFA}?${qs.stringify(loginParams)}`,
+            {
+                mfaMethod,
+                mfaVerificationCode: code,
+                rememberMyBrowser: false,
+                reconsentList: [],
+                mfaSetup: false
+            },
+            { headers: SSO_PAGE_HEADERS }
+        );
+
+        if (verifyResult?.responseStatus?.type !== SSO_SUCCESSFUL) {
+            const message = verifyResult?.responseStatus?.message
+                ? `: ${verifyResult.responseStatus.message}`
+                : '';
+            throw new Error(`login failed after MFA${message}`);
         }
+        if (!verifyResult.serviceTicketId) {
+            throw new Error('login failed after MFA - no service ticket returned');
+        }
+        return verifyResult.serviceTicketId;
     }
 
     async refreshOauth2Token() {
@@ -320,7 +396,7 @@ export class HttpClient {
         }
         const params = {
             ticket,
-            'login-url': this.url.GARMIN_SSO_EMBED,
+            'login-url': this.url.MOBILE_SERVICE_URL,
             'accepts-mfa-tokens': true
         };
         const url = `${this.url.OAUTH_URL}/preauthorized?${qs.stringify(

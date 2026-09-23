@@ -15,17 +15,25 @@ export class UrlClass {
     get GARMIN_SSO() {
         return `${this.GARMIN_SSO_ORIGIN}/sso`;
     }
-    get GARMIN_SSO_EMBED() {
-        return `${this.GARMIN_SSO_ORIGIN}/sso/embed`;
-    }
     get BASE_URL() {
         return `${this.GC_MODERN}/proxy`;
     }
-    get SIGNIN_URL() {
-        return `${this.GARMIN_SSO}/signin`;
+    // Mobile SSO JSON API (used by the Garmin Connect mobile app). Login uses
+    // these endpoints; they support MFA via MOBILE_API_VERIFY_MFA.
+    // @see https://github.com/matin/garth/blob/main/src/garth/sso.py
+    get MOBILE_SSO_SIGNIN_PAGE() {
+        return `${this.GARMIN_SSO_ORIGIN}/mobile/sso/en/sign-in`;
     }
-    get LOGIN_URL() {
-        return `${this.GARMIN_SSO}/login`;
+    get MOBILE_API_LOGIN() {
+        return `${this.GARMIN_SSO_ORIGIN}/mobile/api/login`;
+    }
+    get MOBILE_API_VERIFY_MFA() {
+        return `${this.GARMIN_SSO_ORIGIN}/mobile/api/mfa/verifyCode`;
+    }
+    // Service URL the mobile app authenticates against; also used as the
+    // OAuth1 `login-url`.
+    get MOBILE_SERVICE_URL() {
+        return `https://mobile.integration.${this.domain}/gcm/android`;
     }
     get OAUTH_URL() {
         return `${this.GC_API}/oauth-service/oauth`;
