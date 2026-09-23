@@ -159,6 +159,7 @@ export interface IActivity {
     lapCount: number;
     endLatitude: number;
     endLongitude: number;
+    endTimeGMT: string;
     minAirSpeed: unknown;
     maxAirSpeed: unknown;
     avgAirSpeed: unknown;
