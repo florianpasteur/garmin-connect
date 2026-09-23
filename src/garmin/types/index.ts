@@ -406,31 +406,35 @@ export interface IWorkoutStep {
     stepId: number;
     stepOrder: number;
     stepType: IStepType;
-    childStepId: null;
-    description: null;
-    endCondition: IEndCondition;
-    endConditionValue: number | null;
-    preferredEndConditionUnit: IUnit | null;
-    endConditionCompare: null;
-    targetType: ITargetType;
-    targetValueOne: null;
-    targetValueTwo: null;
-    targetValueUnit: null;
-    zoneNumber: null;
-    secondaryTargetType: null;
-    secondaryTargetValueOne: null;
-    secondaryTargetValueTwo: null;
-    secondaryTargetValueUnit: null;
-    secondaryZoneNumber: null;
-    endConditionZone: null;
-    strokeType: IStrokeType;
-    equipmentType: IEquipmentType;
-    category: string | null;
-    exerciseName: string | null;
-    workoutProvider: null;
-    providerExerciseSourceId: null;
-    weightValue: number | null;
-    weightUnit: { unitKey: string } | null;
+    childStepId?: number | null;
+    description?: string | null;
+    endCondition?: IEndCondition | null;
+    endConditionValue?: number | null;
+    preferredEndConditionUnit?: IUnit | null;
+    endConditionCompare?: string | null;
+    targetType?: ITargetType | null;
+    targetValueOne?: number | null;
+    targetValueTwo?: number | null;
+    targetValueUnit?: IUnit | null;
+    zoneNumber?: number | null;
+    secondaryTargetType?: ITargetType | null;
+    secondaryTargetValueOne?: number | null;
+    secondaryTargetValueTwo?: number | null;
+    secondaryTargetValueUnit?: IUnit | null;
+    secondaryZoneNumber?: number | null;
+    endConditionZone?: number | null;
+    strokeType?: IStrokeType | null;
+    equipmentType?: IEquipmentType | null;
+    category?: string | null;
+    exerciseName?: string | null;
+    workoutProvider?: string | null;
+    providerExerciseSourceId?: string | null;
+    weightValue?: number | null;
+    weightUnit?: { unitKey: string } | null;
+    /** Present on repeat group DTOs (e.g. WorkoutRepeatStepDTO). */
+    numberOfIterations?: number | null;
+    /** Nested child steps for repeat groups. */
+    workoutSteps?: IWorkoutStep[];
 }
 
 export interface IEndCondition {
