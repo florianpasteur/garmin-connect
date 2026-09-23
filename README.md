@@ -24,6 +24,7 @@ This document provides detailed information about the public API methods availab
 -   [Workouts](#workouts)
     -   [Managing Workouts](#managing-workouts)
     -   [Workout Scheduling](#workout-scheduling)
+    -   [Export to intervals.icu](#export-to-intervalsicu)
 -   [Health Data](#health-data)
     -   [Steps](#steps)
     -   [Sleep](#sleep)
@@ -440,6 +441,53 @@ async scheduleWorkout(
     scheduleDate: string
 )
 ````
+
+### Export to intervals.icu
+
+Convert a Garmin workout detail into a plain-text description compatible with
+the [intervals.icu workout builder](https://forum.intervals.icu/t/workout-builder/1163). The workout name is omitted so
+you can set it separately on the intervals.icu event.
+
+```js
+/**
+ * Convert a Garmin workout detail into an intervals.icu workout description string.
+ * @param workout - workout detail from getWorkoutDetail() or WorkoutBuilder.build()
+ * @returns intervals.icu description (sections, steps, targets, repeats)
+ */
+toIntervalsIcuDescription(workout
+:
+IWorkoutDetail
+):
+string
+```
+
+Example:
+
+```js
+const {
+    GarminConnect,
+    toIntervalsIcuDescription
+} = require('@flow-js/garmin-connect');
+
+const detail = await GCClient.getWorkoutDetail({ workoutId });
+const description = toIntervalsIcuDescription(detail);
+console.log(description);
+// Warmup
+// - Easy 10m Z2 HR
+//
+// Main Set 4x
+// - 800mtr 5:00/km Pace
+// - 400mtr Z1 HR
+//
+// Cooldown
+// - 10m Z1 HR
+```
+
+See `examples/example-intervals-icu.js` for a full fetch-and-convert example.
+
+Supported mappings include time and distance durations, lap press, pace / HR / power / cadence targets, section headers
+(`Warmup`, `Main Set`, `Cooldown`), and repeat groups (`Main Set Nx`). Strength steps and unsupported end conditions
+(calories, HR threshold, reps) are emitted as descriptive cue text.
 
 ## Health Data
 
