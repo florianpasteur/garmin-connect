@@ -94,6 +94,8 @@ await GCClient.login();
 await GCClient.login('my.email@example.com', 'MySecretPassword');
 ```
 
+Full example: [`examples/example.js`](examples/example.js)
+
 ### Multi-Factor Authentication (MFA)
 
 If your Garmin account has 2FA / MFA enabled, login will fail unless you supply an
@@ -251,6 +253,8 @@ console.log(userProfile.userName); // Verify login was successful
  */
 async getUserSettings(): Promise<IUserSettings>
 ```
+
+Full example: [`examples/example.js`](examples/example.js)
 
 ## Activities
 
@@ -411,6 +415,8 @@ Example:
 await GCClient.uploadActivityPhoto(12345678, './my-run-photo.jpg');
 ```
 
+Full example: [`examples/example-image.js`](examples/example-image.js)
+
 ## Workouts
 
 ### Managing Workouts
@@ -424,6 +430,8 @@ await GCClient.uploadActivityPhoto(12345678, './my-run-photo.jpg');
 async getWorkouts(start: number, limit: number): Promise<IWorkout[]>
 ```
 
+Full example: [`examples/example-intervals-icu.js`](examples/example-intervals-icu.js)
+
 ```js
 /**
  * Gets the workout detail by workoutId
@@ -435,11 +443,13 @@ async getWorkoutDetail(workout: {
 }): Promise<IWorkoutDetail>
 ```
 
+Full example: [`examples/example-intervals-icu.js`](examples/example-intervals-icu.js)
+
 ````js
 /**
  * Creates a new workout
  *
- * Use workoutBuilder to create the workout object. See the example in the examples/example-workout.js for more complex workouts.
+ * Use workoutBuilder to create the workout object. See the example in [examples/example-workout.js](examples/example-workout.js) for more complex workouts.
  *
  * @param workout - workout detail
  * @returns Response from the workout creation operation
@@ -465,6 +475,8 @@ async getWorkoutDetail(workout: {
  */
 async createWorkout(workout: IWorkoutDetail)
 ````
+
+Full example: [`examples/example-workout.js`](examples/example-workout.js), [`examples/example-strength-workout.js`](examples/example-strength-workout.js)
 
 ````js
 /**
@@ -554,7 +566,7 @@ console.log(description);
 // - 10m Z1 HR
 ```
 
-See `examples/example-intervals-icu.js` for a full fetch-and-convert example.
+See [`examples/example-intervals-icu.js`](examples/example-intervals-icu.js) for a full fetch-and-convert example.
 
 Supported mappings include time and distance durations, lap press, pace / HR / power / cadence targets, section headers
 (`Warmup`, `Main Set`, `Cooldown`), and repeat groups (`Main Set Nx`). Strength steps and unsupported end conditions
@@ -805,6 +817,8 @@ async importGpx(
 ): Promise<ImportedGpxResponse>
 ````
 
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
+
 ````js
 /**
  * Creates a course from GPX data
@@ -841,6 +855,8 @@ async createCourse(
 )
 ````
 
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
+
 ````js
 /**
  * Lists all courses
@@ -859,6 +875,84 @@ async createCourse(
 async listCourses(): Promise<ListCoursesResponse>
 ````
 
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
+
+````js
+/**
+ * Get the details of a course
+ * @param courseId - Course id
+ * @returns Course details
+ *
+ * @example
+ * ```js
+ * const course = await GCClient.getCourseDetails(123456789);
+ * console.log('Course name', course.courseName);
+ * ```
+ */
+async getCourseDetails(
+    courseId: string | number
+): Promise<CourseDetailsResponse>
+````
+
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
+
+````js
+/**
+ * Edit course privacy
+ * @param courseId - Course Id
+ * @param privacy - Privacy setting for the course, use CoursePrivacyRule.PUBLIC (1) for public courses
+ *                  or CoursePrivacyRule.PRIVATE (2) for private courses. Defaults to PRIVATE.
+ * @returns Course details
+ *
+ * @example
+ * ```js
+ * // Make a course public
+ * await GCClient.updateCoursePrivacy(courseId, 1);
+ * ```
+ */
+async updateCoursePrivacy(
+    courseId: string | number,
+    privacy: CoursePrivacyRule = CoursePrivacyRule.PRIVATE
+): Promise<CourseDetailsResponse>
+````
+
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
+
+````js
+/**
+ * Rename a course
+ * @param courseId - Course Id
+ * @param courseName - The new course name
+ * @returns Course details
+ *
+ * @example
+ * ```js
+ * await GCClient.renameCourse(courseId, 'My new course name');
+ * ```
+ */
+async renameCourse(
+    courseId: string | number,
+    courseName: string
+): Promise<CourseDetailsResponse>
+````
+
+````js
+/**
+ * Complete update of a course
+ * @param courseRequest - the full data of the course. Use getCourseDetails to get the existing set
+ * @returns Course details updated
+ *
+ * @example
+ * ```js
+ * const course = await GCClient.getCourseDetails(courseId);
+ * await GCClient.updateCourse({ ...course, description: 'Updated description' });
+ * ```
+ */
+async updateCourse(
+    courseRequest: CourseDetailsRequest
+): Promise<CourseDetailsResponse>
+````
+
 ````js
 /**
  * Exports a course as GPX file content
@@ -873,6 +967,8 @@ async listCourses(): Promise<ListCoursesResponse>
  */
 async exportCourseAsGpx(courseId: number): Promise<string>
 ````
+
+Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
 
 ## Calendar
 
