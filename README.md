@@ -340,7 +340,7 @@ async renameActivity(
 
 ### Activity Files
 
-`````ts
+````ts
 /**
  * Download activity original data file
  *
@@ -363,7 +363,7 @@ async downloadOriginalActivityData(
     dir: string,
     type: ExportFileTypeValue = 'zip'
 ): Promise<void>
-``` `
+````
 
 ```js
 /**
@@ -464,7 +464,7 @@ async getWorkoutDetail(workout: {
  * ```
  */
 async createWorkout(workout: IWorkoutDetail)
-`````
+````
 
 ````js
 /**
