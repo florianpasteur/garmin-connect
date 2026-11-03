@@ -32,6 +32,12 @@ const SSO_PAGE_HEADERS = {
     'Sec-Fetch-Mode': 'navigate',
     'Sec-Fetch-Dest': 'document'
 };
+const SSO_WIDGET_HEADERS = {
+    'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9'
+};
 // responseStatus.type values returned by the mobile SSO API.
 const SSO_SUCCESSFUL = 'SUCCESSFUL';
 const SSO_MFA_REQUIRED = 'MFA_REQUIRED';
@@ -232,11 +238,12 @@ export class HttpClient {
     }
 
     handleHttpError(response: AxiosResponse): void {
-        const { status, statusText, data } = response;
-        const msg = `ERROR: (${status}), ${statusText}, ${JSON.stringify(
-            data
-        )}`;
+        const { status, statusText } = response;
+        const msg = `ERROR: (${status}), ${statusText}`;
         console.error(msg);
+        if (status === 429) {
+            throw Object.assign(new Error(msg), { response });
+        }
         throw new Error(msg);
     }
 
@@ -253,13 +260,108 @@ export class HttpClient {
         options?: LoginOptions
     ): Promise<HttpClient> {
         await this.fetchOauthConsumer();
-        // Get a service ticket via the mobile SSO API (handles MFA if required).
-        const ticket = await this.getLoginTicket(username, password, options);
+        let ticket: string;
+        let loginUrl: string;
+        try {
+            // Get a service ticket via the mobile SSO API (handles MFA if required).
+            ticket = await this.getLoginTicket(username, password, options);
+            loginUrl = this.url.MOBILE_SERVICE_URL;
+        } catch (error) {
+            if (!this.isRateLimitedLoginError(error)) {
+                throw error;
+            }
+            const widgetTicket = await this.getWidgetLoginTicket(
+                username,
+                password
+            );
+            ticket = widgetTicket.ticket;
+            loginUrl = widgetTicket.loginUrl;
+        }
         // Exchange the ticket for an OAuth1 token...
-        const oauth1 = await this.getOauth1Token(ticket);
+        const oauth1 = await this.getOauth1Token(ticket, loginUrl);
         // ...then exchange OAuth1 for the OAuth2 token used by the API.
         await this.exchange(oauth1);
         return this;
+    }
+
+    private isRateLimitedLoginError(error: unknown): boolean {
+        if (
+            typeof error !== 'object' ||
+            error === null ||
+            !('response' in error)
+        ) {
+            return false;
+        }
+        const response = error.response;
+        return (
+            typeof response === 'object' &&
+            response !== null &&
+            'status' in response &&
+            response.status === 429
+        );
+    }
+
+    private async getWidgetLoginTicket(
+        username: string,
+        password: string
+    ): Promise<{ ticket: string; loginUrl: string }> {
+        const ssoBase = `${this.url.GARMIN_SSO_ORIGIN}/sso`;
+        const embedUrl = `${ssoBase}/embed`;
+        const embedParams = {
+            id: 'gauth-widget',
+            embedWidget: 'true',
+            gauthHost: ssoBase
+        };
+        const signInParams = {
+            ...embedParams,
+            service: embedUrl,
+            source: embedUrl,
+            redirectAfterAccountLoginUrl: embedUrl,
+            redirectAfterAccountCreationUrl: embedUrl
+        };
+
+        await this.get<string>(embedUrl, {
+            params: embedParams,
+            headers: SSO_WIDGET_HEADERS
+        });
+        const signInHtml = await this.get<string>(`${ssoBase}/signin`, {
+            params: signInParams,
+            headers: {
+                ...SSO_WIDGET_HEADERS,
+                Referer: embedUrl
+            }
+        });
+        const csrfMatch = signInHtml.match(
+            /name=["']_csrf["']\s+value=["']([^"']+)["']/i
+        );
+        if (!csrfMatch) {
+            throw new Error('Garmin SSO widget did not provide a CSRF token');
+        }
+
+        const resultHtml = await this.post<string>(
+            `${ssoBase}/signin`,
+            qs.stringify({
+                username,
+                password,
+                embed: 'true',
+                _csrf: csrfMatch[1]
+            }),
+            {
+                params: signInParams,
+                headers: {
+                    ...SSO_WIDGET_HEADERS,
+                    Referer: `${ssoBase}/signin`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }
+        );
+        const ticketMatch = resultHtml.match(/[?&]ticket=(ST-[^"'&\s]+)/);
+        if (!ticketMatch) {
+            throw new Error(
+                'Garmin SSO widget did not provide a service ticket'
+            );
+        }
+        return { ticket: ticketMatch[1], loginUrl: embedUrl };
     }
 
     /**
@@ -326,7 +428,9 @@ export class HttpClient {
             ? `: ${loginResult.responseStatus.message}`
             : '';
         throw new Error(
-            `login failed (${responseType || 'unknown response'})${message}, please check username and password`
+            `login failed (${
+                responseType || 'unknown response'
+            })${message}, please check username and password`
         );
     }
 
@@ -370,7 +474,9 @@ export class HttpClient {
             throw new Error(`login failed after MFA${message}`);
         }
         if (!verifyResult.serviceTicketId) {
-            throw new Error('login failed after MFA - no service ticket returned');
+            throw new Error(
+                'login failed after MFA - no service ticket returned'
+            );
         }
         return verifyResult.serviceTicketId;
     }
@@ -390,13 +496,16 @@ export class HttpClient {
         console.log('Oauth2 token refreshed!');
     }
 
-    async getOauth1Token(ticket: string): Promise<IOauth1> {
+    async getOauth1Token(
+        ticket: string,
+        loginUrl = this.url.MOBILE_SERVICE_URL
+    ): Promise<IOauth1> {
         if (!this.OAUTH_CONSUMER) {
             throw new Error('No OAUTH_CONSUMER');
         }
         const params = {
             ticket,
-            'login-url': this.url.MOBILE_SERVICE_URL,
+            'login-url': loginUrl,
             'accepts-mfa-tokens': true
         };
         const url = `${this.url.OAUTH_URL}/preauthorized?${qs.stringify(
