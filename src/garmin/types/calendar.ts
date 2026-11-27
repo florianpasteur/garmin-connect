@@ -79,6 +79,7 @@ type CalendarItem = {
     activeSplitSummaryDuration: number | null;
     activeSplitSummaryDistance: number | null;
     maxSplitDistance: number | null;
+    maxDistanceWithPrecision: number | null;
     maxSplitSpeed: number | null;
     location: string | null;
     shareableEventUuid: string | null;
@@ -86,6 +87,7 @@ type CalendarItem = {
     workoutUuid: string | null;
     napStartTimeLocal: string | null;
     beginPackWeight: number | null;
+    maxPackWeight: number | null;
     hasSplits: boolean | null;
     shareableEvent: boolean;
     primaryEvent: boolean | null;

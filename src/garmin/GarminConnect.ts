@@ -55,6 +55,10 @@ import {
 } from './types/gpx';
 import { courseRequestTemplate } from './common/GpxUtils';
 import { MonthCalendar, YearCalendar } from './types/calendar';
+import { GolfScorecard, GolfSummary } from './types/golf';
+import { HeartRate } from './types/heartrate';
+import { HydrationData, WaterIntake } from './types/hydration';
+import { UpdateWeight, WeightData } from './types/weight';
 
 let config: GCCredentials | undefined = undefined;
 
@@ -316,22 +320,26 @@ export default class GarminConnect {
     /**
      * Uploads an activity file
      * @param file
-     * @param format - 'fit' | 'gpx' | 'tcx'
+     * @param format - 'fit' | 'gpx' | 'tcx', defaults to the file extension,
+     * or 'fit' when the file has none
      */
-    async uploadActivity(
-        file: string,
-        format: UploadFileTypeTypeValue = 'fit'
-    ) {
-        const detectedFormat = (format || path.extname(file))?.toLowerCase();
+    async uploadActivity(file: string, format?: UploadFileTypeTypeValue) {
+        const detectedFormat = (
+            format ||
+            path.extname(file).slice(1) ||
+            'fit'
+        ).toLowerCase();
         if (!_.includes(UploadFileType, detectedFormat)) {
-            throw new Error('uploadActivity - Invalid format: ' + format);
+            throw new Error(
+                'uploadActivity - Invalid format: ' + detectedFormat
+            );
         }
 
         const fileBuffer = fs.createReadStream(file);
         const form = new FormData();
         form.append('userfile', fileBuffer);
         const response = await this.client.post(
-            this.url.UPLOAD + '.' + format,
+            this.url.UPLOAD + '.' + detectedFormat,
             form,
             {
                 headers: {
@@ -490,10 +498,11 @@ export default class GarminConnect {
     /**
      * Retrieves step count for a specific date
      * @param date - The date to get step count for, defaults to current date
-     * @returns Total step count for the specified date
+     * @returns Total step count for the specified date, or null when Garmin has
+     * a record for the date without a step count (e.g. no device data)
      * @throws Error if steps data not found for the date
      */
-    async getSteps(date = new Date()): Promise<number> {
+    async getSteps(date = new Date()): Promise<number | null> {
         const dateString = toDateString(date);
 
         const days = await this.client.get<IDailyStepsType[]>(
@@ -556,21 +565,20 @@ export default class GarminConnect {
         try {
             const sleepData = await this.getSleepData(date);
 
+            const sleepStartTimestampGMT =
+                sleepData?.dailySleepDTO?.sleepStartTimestampGMT;
+            const sleepEndTimestampGMT =
+                sleepData?.dailySleepDTO?.sleepEndTimestampGMT;
+
+            // Both are null for a night without data.
             if (
-                !sleepData ||
-                !sleepData.dailySleepDTO ||
-                sleepData.dailySleepDTO.sleepStartTimestampGMT === undefined ||
-                sleepData.dailySleepDTO.sleepEndTimestampGMT === undefined
+                sleepStartTimestampGMT == null ||
+                sleepEndTimestampGMT == null
             ) {
                 throw new Error(
                     'Invalid or missing sleep data for the specified date.'
                 );
             }
-
-            const sleepStartTimestampGMT =
-                sleepData.dailySleepDTO.sleepStartTimestampGMT;
-            const sleepEndTimestampGMT =
-                sleepData.dailySleepDTO.sleepEndTimestampGMT;
 
             const { hours, minutes } = calculateTimeDifference(
                 sleepStartTimestampGMT,
@@ -631,7 +639,8 @@ export default class GarminConnect {
     /**
      * Retrieves hydration data in fluid ounces for a specific date
      * @param date - The date to get hydration data for, defaults to current date
-     * @returns Hydration value in fluid ounces for the specified date
+     * @returns Hydration value in fluid ounces for the specified date, 0 when
+     * nothing is logged
      * @throws Error if hydration data is invalid or empty
      */
     async getDailyHydration(date = new Date()): Promise<number> {
@@ -641,11 +650,12 @@ export default class GarminConnect {
                 `${this.url.DAILY_HYDRATION}/${dateString}`
             );
 
-            if (!hydrationData || !hydrationData.valueInML) {
+            if (!hydrationData || hydrationData.valueInML === undefined) {
                 throw new Error('Invalid or empty hydration data response.');
             }
 
-            return convertMLToOunces(hydrationData.valueInML);
+            // Garmin returns null when nothing is logged for the date.
+            return convertMLToOunces(hydrationData.valueInML ?? 0);
         } catch (error: any) {
             throw new Error(`Error in getDailyHydration: ${error.message}`);
         }

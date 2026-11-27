@@ -1,24 +1,24 @@
-interface HeartRateValueDescriptor {
+export interface HeartRateValueDescriptor {
     key: string;
     index: number;
 }
 
-interface HeartRateEntry {
+export interface HeartRateEntry {
     timestamp: number;
     heartrate: number;
 }
 
-interface HeartRate {
+export interface HeartRate {
     userProfilePK: number;
     calendarDate: string;
-    startTimestampGMT: string;
-    endTimestampGMT: string;
-    startTimestampLocal: string;
-    endTimestampLocal: string;
-    maxHeartRate: number;
-    minHeartRate: number;
-    restingHeartRate: number;
-    lastSevenDaysAvgRestingHeartRate: number;
-    heartRateValueDescriptors: HeartRateValueDescriptor[];
-    heartRateValues: HeartRateEntry[][];
+    startTimestampGMT: string | null;
+    endTimestampGMT: string | null;
+    startTimestampLocal: string | null;
+    endTimestampLocal: string | null;
+    maxHeartRate: number | null;
+    minHeartRate: number | null;
+    restingHeartRate: number | null;
+    lastSevenDaysAvgRestingHeartRate: number | null;
+    heartRateValueDescriptors: HeartRateValueDescriptor[] | null;
+    heartRateValues: HeartRateEntry[][] | null;
 }

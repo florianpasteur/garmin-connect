@@ -484,9 +484,9 @@ export interface ITargetType {
 
 export interface IDailyStepsType {
     calendarDate: string;
-    stepGoal: number;
-    totalDistance: number;
-    totalSteps: number;
+    stepGoal: number | null;
+    totalDistance: number | null;
+    totalSteps: number | null;
 }
 
 // Export other types
@@ -521,5 +521,9 @@ export {
     SleepBodyBattery,
     SleepData
 } from './sleep';
+export { GolfScorecard, GolfSummary } from './golf';
+export { HeartRate } from './heartrate';
+export { HydrationData, WaterIntake } from './hydration';
+export { UpdateWeight, WeightData } from './weight';
 export { Workout } from './workout';
 export { YearCalendar, MonthCalendar, WeekCalendar } from './calendar';

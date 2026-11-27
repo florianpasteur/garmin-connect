@@ -378,13 +378,11 @@ async downloadOriginalActivityData(
  * Note: Garmin changed the upload API in v1.4.4, the response `detailedImportResult` no longer contains the new activityId.
  *
  * @param file - Path to the activity file
- * @param format - 'fit' | 'gpx' | 'tcx'
+ * @param format - 'fit' | 'gpx' | 'tcx', defaults to the file extension,
+ * or 'fit' when the file has none
  * @returns Response from the upload operation
  */
-async uploadActivity(
-    file: string,
-    format: UploadFileTypeTypeValue = 'fit'
-)
+async uploadActivity(file: string, format?: UploadFileTypeTypeValue)
 ```
 
 Example:
@@ -580,10 +578,11 @@ Supported mappings include time and distance durations, lap press, pace / HR / p
 /**
  * Retrieves step count for a specific date
  * @param date - The date to get step count for, defaults to current date
- * @returns Total step count for the specified date
+ * @returns Total step count for the specified date, or null when Garmin has
+ * a record for the date without a step count (e.g. no device data)
  * @throws Error if steps data not found for the date
  */
-async getSteps(date = new Date()): Promise<number>
+async getSteps(date = new Date()): Promise<number | null>
 ```
 
 Example:
@@ -677,7 +676,8 @@ async updateWeight(
 /**
  * Retrieves hydration data in fluid ounces for a specific date
  * @param date - The date to get hydration data for, defaults to current date
- * @returns Hydration value in fluid ounces for the specified date
+ * @returns Hydration value in fluid ounces for the specified date, 0 when
+ * nothing is logged
  * @throws Error if hydration data is invalid or empty
  */
 async getDailyHydration(date = new Date()): Promise<number>
