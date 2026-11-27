@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const { withGarmin } = require('../helpers/fake-garmin');
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 
 /** The only request made, as `[verb, path]` */
 const only = (calls) => {

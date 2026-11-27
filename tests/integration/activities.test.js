@@ -5,7 +5,7 @@ const { load } = require('../helpers/dist');
 
 const { ActivityType, ActivitySubType } = load();
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 
 const LIST = '/activitylist-service/activities/search/activities';
 const ACTIVITY = '/activity-service/activity';

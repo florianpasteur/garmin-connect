@@ -5,7 +5,7 @@ const { load } = require('../helpers/dist');
 
 const { toDateString } = load('garmin/common/DateUtils');
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 const DAY = date('2026-03-15');
 const START = date('2026-01-01');
 const END = date('2026-03-15');

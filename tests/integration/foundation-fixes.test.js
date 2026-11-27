@@ -201,7 +201,7 @@ test('upload rejects an unsupported extension', async () => {
 // --- health -----------------------------------------------------------------
 
 const answering = (data) => client(async () => [200, data]).gc;
-const day = new Date('2026-01-15T12:00:00Z');
+const day = new Date('2026-01-15T12:00:00');
 
 test('hydration with nothing logged is 0', async () => {
     assert.strictEqual(

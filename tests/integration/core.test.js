@@ -9,7 +9,7 @@ const { load } = require('../helpers/dist');
 
 const { GpxActivityType, CoursePrivacyRule } = load();
 
-const date = new Date('2026-03-05T12:00:00Z');
+const date = new Date('2026-03-05T12:00:00');
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'gc-core-'));
 
 const line = (r) => `${r.method} ${r.path}`;

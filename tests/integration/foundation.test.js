@@ -5,7 +5,7 @@ const { load } = require('../helpers/dist');
 
 const { splitDateRange } = load('garmin/common/DateUtils');
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 
 test('requests are authorised with the OAuth2 token', () =>
     withGarmin({ 'GET /x': { ok: true } }, async ({ gc, requests }) => {

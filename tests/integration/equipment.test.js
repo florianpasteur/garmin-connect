@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { withGarmin } = require('../helpers/fake-garmin');
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 
 const GEAR = {
     uuid: 'abc123',
@@ -103,7 +103,7 @@ test('path segments from the caller are encoded', () =>
 
 test('getAvailableGear asks for the gear of a date', () =>
     expectCall('GET /gear-service/gear/v2/available/2026-03-04', [], (gc) =>
-        gc.getAvailableGear(new Date('2026-03-04T12:00:00Z'))
+        gc.getAvailableGear(new Date('2026-03-04T12:00:00'))
     ));
 
 test('createGear posts the payload', async () => {

@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { withGarmin } = require('../helpers/fake-garmin');
 
-const date = (day) => new Date(day + 'T12:00:00Z');
+const date = (day) => new Date(day + 'T12:00:00');
 
 const badge = {
     badgeId: 11,
