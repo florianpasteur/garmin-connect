@@ -8,6 +8,9 @@ A JavaScript library for accessing and managing your Garmin Connect data. It com
 
 This document provides detailed information about the public API methods available in the `@flow-js/garmin-connect` library.
 
+Several sections show the matching page of the Garmin Connect web app, captured in November 2026. Names, titles, notes and health values in the screenshots are made up. In the table under each
+screenshot, a row without an asterisk reads data: the page was seen calling the endpoint that the method uses. A row marked \* changes your account: it is matched by what the button does, and was not clicked.
+
 ## Table of Contents
 
 -   [Authentication](#authentication)
@@ -269,6 +272,16 @@ Full example: [`examples/example.js`](examples/example.js)
 
 ### Getting Activities
 
+In Garmin Connect: [Activities](https://connect.garmin.com/app/activities)
+
+![Activity list in Garmin Connect](./docs/images/activities.jpg)
+
+| On screen          | Method                                  |
+| ------------------ | --------------------------------------- |
+| Activity list      | `getActivities()`, `searchActivities()` |
+| Manual Activity \* | `createManualActivity()`                |
+| Import \*          | `uploadActivity()`                      |
+
 ```js
 /**
  * Retrieves a list of activities matching the specified criteria
@@ -306,6 +319,19 @@ async countActivities(): Promise<ICountActivities>
 ```
 
 ### Individual Activity Operations
+
+In Garmin Connect: [Activities, then one activity](https://connect.garmin.com/app/activities)
+
+![Page of one activity in Garmin Connect](./docs/images/activity.jpg)
+
+| On screen                                                         | Method                                                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Title and totals                                                  | `getActivity()`                                                                                         |
+| Map and charts                                                    | `getActivityDetails()`                                                                                  |
+| Splits, weather and zones (the splits and zones are further down) | `getActivitySplits()`, `getActivityWeather()`, `getActivityHeartRateZones()`, `getActivityPowerZones()` |
+| Pencil next to the title \*                                       | `renameActivity()`                                                                                      |
+| Photos \*                                                         | `uploadActivityPhoto()`                                                                                 |
+| Gear \*                                                           | `linkGearToActivity()`, `unlinkGearFromActivity()`                                                      |
 
 ```js
 /**
@@ -427,6 +453,28 @@ Full example: [`examples/example-image.js`](examples/example-image.js)
 ## Workouts
 
 ### Managing Workouts
+
+In Garmin Connect: [Workouts](https://connect.garmin.com/app/workouts)
+
+![Workout list in Garmin Connect](./docs/images/workouts.jpg)
+
+| On screen           | Method            |
+| ------------------- | ----------------- |
+| My Workouts         | `getWorkouts()`   |
+| Create a Workout \* | `createWorkout()` |
+
+In Garmin Connect: [Workouts, then one workout](https://connect.garmin.com/app/workouts)
+
+![Page of one workout in Garmin Connect](./docs/images/workout-detail.jpg)
+
+| On screen          | Method                  |
+| ------------------ | ----------------------- |
+| Steps and targets  | `getWorkoutDetail()`    |
+| Edit Workout \*    | `updateWorkout()`       |
+| Send to Device \*  | `sendWorkoutToDevice()` |
+| Add to Calendar \* | `scheduleWorkout()`     |
+| Duplicate \*       | `copyWorkout()`         |
+| Delete Workout \*  | `deleteWorkout()`       |
 
 ```js
 /**
@@ -602,6 +650,14 @@ const totalSteps = await GCClient.getSteps(new Date('2020-03-24'));
 
 ### Sleep
 
+In Garmin Connect: [Sleep](https://connect.garmin.com/app/sleep)
+
+![Sleep page in Garmin Connect](./docs/images/sleep.jpg)
+
+| On screen        | Method                                 |
+| ---------------- | -------------------------------------- |
+| Sleep of the day | `getSleepData()`, `getSleepDuration()` |
+
 ```js
 /**
  * Retrieves sleep data for a specific date
@@ -634,6 +690,18 @@ async getSleepDuration(
 ````
 
 ### Weight
+
+In Garmin Connect: [Weight](https://connect.garmin.com/app/weight)
+
+![Weight page in Garmin Connect](./docs/images/weight.jpg)
+
+| On screen      | Method                 |
+| -------------- | ---------------------- |
+| Weigh-ins      | `getDailyWeightData()` |
+| Goal           | `getWeightGoals()`     |
+| Add Weight \*  | `updateWeight()`       |
+| Bin icon \*    | `deleteWeight()`       |
+| Weight Goal \* | `setWeightGoal()`      |
 
 ```js
 /**
@@ -680,6 +748,15 @@ async updateWeight(
 ````
 
 ### Hydration
+
+In Garmin Connect: [Hydration](https://connect.garmin.com/app/hydration)
+
+![Hydration page in Garmin Connect](./docs/images/hydration.jpg)
+
+| On screen         | Method                                                 |
+| ----------------- | ------------------------------------------------------ |
+| Intake of the day | `getDailyHydration()`                                  |
+| Plus and minus \* | `updateHydrationLogMl()`, `updateHydrationLogOunces()` |
 
 ```js
 /**
@@ -803,6 +880,18 @@ async unlinkGearFromActivity(
 ```
 
 ## GPX and Courses
+
+In Garmin Connect: [Courses](https://connect.garmin.com/app/courses)
+
+![Course list in Garmin Connect](./docs/images/courses.jpg)
+
+| On screen    | Method                                                  |
+| ------------ | ------------------------------------------------------- |
+| My Courses   | `listCourses()`                                         |
+| Favorites    | `getFavoriteCourses()`                                  |
+| Import \*    | `importGpx()`, `createCourse()`                         |
+| Star icon \* | `addCourseToFavorites()`, `removeCourseFromFavorites()` |
+| Bin icon \*  | `deleteCourse()`                                        |
 
 ````js
 /**
@@ -980,6 +1069,14 @@ async exportCourseAsGpx(courseId: number): Promise<string>
 Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
 
 ## Calendar
+
+In Garmin Connect: [Calendar](https://connect.garmin.com/app/calendar/2023/9)
+
+![Month view of the Garmin Connect calendar](./docs/images/calendar.jpg)
+
+| On screen                                       | Method                            |
+| ----------------------------------------------- | --------------------------------- |
+| October 2023 (months start at 0, as in the URL) | `getMonthCalendarEvents(2023, 9)` |
 
 ```js
 /**
@@ -1434,6 +1531,15 @@ await GCClient.updateHydrationLogOunces(new Date(), 8);
 
 ### Blood pressure
 
+In Garmin Connect: [Blood Pressure](https://connect.garmin.com/app/blood-pressure)
+
+![Blood pressure page in Garmin Connect](./docs/images/blood-pressure.jpg)
+
+| On screen                     | Method                  |
+| ----------------------------- | ----------------------- |
+| Chart and readings of the day | `getBloodPressureDay()` |
+| Add Reading \*                | `logBloodPressure()`    |
+
 ```js
 await GCClient.getBloodPressureRange(
     new Date('2024-01-01T00:00:00'),
@@ -1528,6 +1634,15 @@ these endpoints were found in Garmin's web code: where a response type is
 
 ### Gear
 
+In Garmin Connect: [Gear](https://connect.garmin.com/app/gear)
+
+![Gear page in Garmin Connect](./docs/images/gear.jpg)
+
+| On screen   | Method                                |
+| ----------- | ------------------------------------- |
+| Gear cards  | `getGearList()`, `getUserGearTypes()` |
+| Add Gear \* | `createGear()`                        |
+
 `getGear` and `getGearsForActivity` return the legacy shape. The gear v2 methods
 add usage totals.
 
@@ -1612,12 +1727,29 @@ the request body is a plain object, it is sent as given.
 
 ### Personal Records
 
+In Garmin Connect: [Personal Records](https://connect.garmin.com/app/personal-records)
+
+![Personal records page in Garmin Connect](./docs/images/personal-records.jpg)
+
+| On screen         | Method                                             |
+| ----------------- | -------------------------------------------------- |
+| Records per sport | `getPersonalRecords()`, `getPersonalRecordTypes()` |
+
 ```js
 const records = await GCClient.getPersonalRecords();
 const recordTypes = await GCClient.getPersonalRecordTypes();
 ```
 
 ### Goals
+
+In Garmin Connect: [Goals](https://connect.garmin.com/app/goals)
+
+![Goals page in Garmin Connect](./docs/images/goals.jpg)
+
+| On screen                     | Method                                                         |
+| ----------------------------- | -------------------------------------------------------------- |
+| Active, Future and Past Goals | `getGoals('active')`, `getGoals('future')`, `getGoals('past')` |
+| Create a New Goal \*          | `createGoal()`                                                 |
 
 ```js
 // status: 'active' (default), 'future' or 'past'
@@ -1641,12 +1773,32 @@ await GCClient.setWeightGoal(70000); // grams, from today
 
 ### Badges
 
+In Garmin Connect: [Badges](https://connect.garmin.com/app/badges)
+
+![Earned badges in Garmin Connect](./docs/images/badges.jpg)
+
+| On screen | Method                 |
+| --------- | ---------------------- |
+| Earned    | `getEarnedBadges()`    |
+| Available | `getAvailableBadges()` |
+
 ```js
 const earned = await GCClient.getEarnedBadges();
 const available = await GCClient.getAvailableBadges();
 ```
 
 ### Challenges
+
+In Garmin Connect: [Challenges](https://connect.garmin.com/app/challenge)
+
+![Challenges page in Garmin Connect](./docs/images/challenges.jpg)
+
+| On screen                         | Method                             |
+| --------------------------------- | ---------------------------------- |
+| Join a Challenge                  | `getAvailableBadgeChallenges()`    |
+| Start an Expedition               | `getAvailableVirtualChallenges()`  |
+| Current Challenges (further down) | `getNonCompletedAdHocChallenges()` |
+| Join \*                           | `joinBadgeChallenge()`             |
 
 ```js
 const open = await GCClient.getAvailableBadgeChallenges();
