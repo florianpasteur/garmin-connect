@@ -396,9 +396,9 @@ export interface IAuthor {
 }
 
 export interface IUnit {
-    unitId: null;
-    unitKey: null;
-    factor: null;
+    unitId: number | null;
+    unitKey: string | null;
+    factor: number | null;
 }
 
 export interface ISportType {
@@ -447,6 +447,12 @@ export interface IWorkoutStep {
     numberOfIterations?: number | null;
     /** Nested child steps for repeat groups. */
     workoutSteps?: IWorkoutStep[];
+    smartRepeat?: boolean;
+    drillType?: { drillTypeId: number; drillTypeKey: string } | null;
+    intensityType?: {
+        intensityTypeId: number;
+        intensityTypeKey: string;
+    } | null;
 }
 
 export interface IEndCondition {
@@ -458,7 +464,7 @@ export interface IEndCondition {
 
 export interface IEquipmentType {
     equipmentTypeId: number;
-    equipmentTypeKey: null;
+    equipmentTypeKey: string | null;
     displayOrder: number;
 }
 
@@ -470,7 +476,7 @@ export interface IStepType {
 
 export interface IStrokeType {
     strokeTypeId: number;
-    strokeTypeKey: null;
+    strokeTypeKey: string | null;
     displayOrder: number;
 }
 
@@ -524,6 +530,13 @@ export {
 export { GolfScorecard, GolfSummary } from './golf';
 export { HeartRate } from './heartrate';
 export { HydrationData, WaterIntake } from './hydration';
-export { UpdateWeight, WeightData } from './weight';
+export { UpdateWeight, WeightData, DateWeight, TotalAverage } from './weight';
 export { Workout } from './workout';
 export { YearCalendar, MonthCalendar, WeekCalendar } from './calendar';
+export * from './activity-details';
+export * from './wellness';
+export * from './metrics';
+export * from './training';
+export * from './logging';
+export * from './equipment';
+export * from './achievements';

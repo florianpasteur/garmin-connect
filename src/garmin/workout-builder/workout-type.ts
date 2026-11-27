@@ -19,4 +19,12 @@ export class WorkoutType {
     static Swimming = new WorkoutType('swimming', 4);
     static Strength = new WorkoutType('strength_training', 5);
     static Cardio = new WorkoutType('cardio_training', 6);
+    static Other = new WorkoutType('other', 3);
+    static Yoga = new WorkoutType('yoga', 7);
+    static Pilates = new WorkoutType('pilates', 8);
+    static Hiit = new WorkoutType('hiit', 9);
+    /** Needs one {@link WorkoutSegment} per sport, see `WorkoutBuilder.addSegment` */
+    static MultiSport = new WorkoutType('multi_sport', 10);
+    static Mobility = new WorkoutType('mobility', 11);
+    static Rucking = new WorkoutType('rucking', 13);
 }

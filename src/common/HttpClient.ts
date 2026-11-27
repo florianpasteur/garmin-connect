@@ -194,6 +194,21 @@ export class HttpClient {
         return response?.data;
     }
 
+    async patch<T>(
+        url: string,
+        data: unknown,
+        config?: AxiosRequestConfig<any>
+    ): Promise<T> {
+        const response = await this.client.post<T>(url, data, {
+            ...config,
+            headers: {
+                ...config?.headers,
+                'X-Http-Method-Override': 'PATCH'
+            }
+        });
+        return response?.data;
+    }
+
     setCommonHeader(headers: RawAxiosRequestHeaders): void {
         _.each(headers, (headerValue, key) => {
             this.client.defaults.headers.common[key] = headerValue;

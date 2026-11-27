@@ -1,5 +1,9 @@
 export type GCActivityId = number;
 
+/**
+ * Common activity type keys. Garmin has many more: any `typeKey` returned by
+ * `getActivityTypes()` is accepted where an activity type is expected.
+ */
 export enum ActivityType {
     Cycling = 'cycling',
     FitnessEquipment = 'fitness_equipment',
@@ -7,7 +11,32 @@ export enum ActivityType {
     Hiking = 'hiking',
     Other = 'other',
     WaterSport = 'water_sports',
-    Running = 'street_running'
+    Running = 'street_running',
+    AllRunning = 'running',
+    TrailRunning = 'trail_running',
+    TreadmillRunning = 'treadmill_running',
+    TrackRunning = 'track_running',
+    RoadBiking = 'road_biking',
+    MountainBiking = 'mountain_biking',
+    GravelCycling = 'gravel_cycling',
+    IndoorCycling = 'indoor_cycling',
+    VirtualRide = 'virtual_ride',
+    Swimming = 'swimming',
+    LapSwimming = 'lap_swimming',
+    OpenWaterSwimming = 'open_water_swimming',
+    StrengthTraining = 'strength_training',
+    IndoorCardio = 'indoor_cardio',
+    Elliptical = 'elliptical',
+    IndoorRowing = 'indoor_rowing',
+    Rowing = 'rowing',
+    Yoga = 'yoga',
+    Pilates = 'pilates',
+    Mountaineering = 'mountaineering',
+    RockClimbing = 'rock_climbing',
+    Bouldering = 'bouldering',
+    WinterSports = 'winter_sports',
+    Golf = 'golf',
+    MultiSport = 'multi_sport'
 }
 
 export enum ActivitySubType {
