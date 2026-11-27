@@ -99,14 +99,23 @@ liveTest('getActivityTypes lists type keys', async (gc) => {
     }
 });
 
-liveTest('the ActivityType enum only holds known keys', async (gc) => {
-    const { ActivityType } = require('../helpers/dist').load();
+liveTest('the activity type enums match the keys of Garmin', async (gc) => {
+    const { ActivityType, ActivitySubType } = require('../helpers/dist').load();
     const known = (await gc.getActivityTypes()).map((type) => type.typeKey);
-    const unknown = Object.keys(ActivityType)
-        .map((name) => ActivityType[name])
-        .filter((key) => known.indexOf(key) === -1);
-    // These are Garmin's public type keys, not personal data
-    assert.deepStrictEqual(unknown, []);
+    const listed = Object.values(ActivityType).concat(
+        Object.values(ActivitySubType)
+    );
+    // These are Garmin's public type keys, not personal data. `surfing` is an
+    // older value that Garmin no longer lists (see `surfing_v2`)
+    assert.deepStrictEqual(
+        listed.filter((key) => known.indexOf(key) === -1),
+        ['surfing']
+    );
+    // `all` is the root of the list, not a filter
+    assert.deepStrictEqual(
+        known.filter((key) => key !== 'all' && listed.indexOf(key) === -1),
+        []
+    );
 });
 
 liveTest('getEventTypes lists type keys', async (gc) => {

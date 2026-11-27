@@ -11,7 +11,12 @@ import {
     UploadFileType,
     UploadFileTypeTypeValue
 } from '../types';
-import { GCActivityId, IActivity } from '../types/activity';
+import {
+    GCActivityId,
+    IActivity,
+    ActivityType,
+    ActivitySubType
+} from '../types/activity';
 import {
     ActivityChartDetails,
     ActivityChartOptions,
@@ -27,7 +32,6 @@ import {
     ActivityStatsOptions,
     ActivityTypedSplits,
     ActivityTypeDefinition,
-    ActivityTypeKey,
     ActivityUpdate,
     ActivityWeather,
     ActivityZone
@@ -42,15 +46,15 @@ export class ActivityApi extends BaseApi {
      * Retrieves a list of activities matching the specified criteria
      * @param start - Optional starting index for pagination
      * @param limit - Optional limit for pagination
-     * @param activityType - Optional activity type filter, any Garmin type key
+     * @param activityType - Optional activity type filter
      * @param subActivityType - Optional activity subtype filter
      * @returns Array of activities matching the criteria
      */
     async getActivities(
         start?: number,
         limit?: number,
-        activityType?: ActivityTypeKey,
-        subActivityType?: ActivityTypeKey
+        activityType?: ActivityType,
+        subActivityType?: ActivitySubType
     ): Promise<IActivity[]> {
         return this.client.get<IActivity[]>(this.url.ACTIVITIES, {
             params: { start, limit, activityType, subActivityType }

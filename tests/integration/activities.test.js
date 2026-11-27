@@ -188,17 +188,20 @@ test('searchActivities without options sends no query', () =>
         assert.deepStrictEqual(calls()[0].query, {});
     }));
 
-test('getActivities accepts any activity type key', () =>
+test('getActivities sends the type and subtype filters', () =>
     withGarmin({ [`GET ${LIST}`]: [] }, async ({ gc, calls }) => {
-        await gc.getActivities(0, 2, 'some_new_type');
-        await gc.getActivities(0, 2, ActivityType.Running);
-        assert.deepStrictEqual(
-            calls().map((c) => c.query),
-            [
-                { start: '0', limit: '2', activityType: 'some_new_type' },
-                { start: '0', limit: '2', activityType: 'street_running' }
-            ]
+        await gc.getActivities(
+            0,
+            2,
+            ActivityType.Cycling,
+            ActivitySubType.GravelCycling
         );
+        assert.deepStrictEqual(calls()[0].query, {
+            start: '0',
+            limit: '2',
+            activityType: 'cycling',
+            subActivityType: 'gravel_cycling'
+        });
     }));
 
 test('the original activity type values are unchanged', () => {
@@ -210,6 +213,9 @@ test('the original activity type values are unchanged', () => {
     assert.strictEqual(ActivityType.WaterSport, 'water_sports');
     assert.strictEqual(ActivityType.Running, 'street_running');
     assert.strictEqual(ActivityType.AllRunning, 'running');
+    assert.strictEqual(ActivitySubType.Surfing, 'surfing');
+    assert.strictEqual(ActivitySubType.SurfingV2, 'surfing_v2');
+    assert.strictEqual(ActivitySubType.RowingV2, 'rowing_v2');
 });
 
 /** Checks that `method()` is a plain GET of `path` returning its body */

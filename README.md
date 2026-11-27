@@ -281,8 +281,8 @@ Full example: [`examples/example.js`](examples/example.js)
 async getActivities(
     start?: number,
     limit?: number,
-    activityType?: ActivityTypeKey,
-    subActivityType?: ActivityTypeKey
+    activityType?: ActivityType,
+    subActivityType?: ActivitySubType
 ): Promise<IActivity[]>
 ```
 
@@ -1039,8 +1039,9 @@ const { firstActivityId, lastActivityId } =
     await GCClient.getFirstAndLastActivity();
 ```
 
-Anywhere an activity type is expected, you can pass an `ActivityType` value or
-any `typeKey` returned by `getActivityTypes()`. `ActivityType.Running` is
+`searchActivities` and the methods that create or edit activities accept an
+enum value or any `typeKey` returned by `getActivityTypes()`. `getActivities`
+takes the `ActivityType` and `ActivitySubType` enums. `ActivityType.Running` is
 `street_running`; `ActivityType.AllRunning` is `running`.
 
 ### Data of One Activity

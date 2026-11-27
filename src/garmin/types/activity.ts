@@ -1,9 +1,6 @@
 export type GCActivityId = number;
 
-/**
- * Common activity type keys. Garmin has many more: any `typeKey` returned by
- * `getActivityTypes()` is accepted where an activity type is expected.
- */
+/** Top level activity types, the `activityType` filter of `getActivities` */
 export enum ActivityType {
     Cycling = 'cycling',
     FitnessEquipment = 'fitness_equipment',
@@ -12,33 +9,20 @@ export enum ActivityType {
     Other = 'other',
     WaterSport = 'water_sports',
     Running = 'street_running',
+    // `Running` above is street running, this is every kind of running
     AllRunning = 'running',
-    TrailRunning = 'trail_running',
-    TreadmillRunning = 'treadmill_running',
-    TrackRunning = 'track_running',
-    RoadBiking = 'road_biking',
-    MountainBiking = 'mountain_biking',
-    GravelCycling = 'gravel_cycling',
-    IndoorCycling = 'indoor_cycling',
-    VirtualRide = 'virtual_ride',
     Swimming = 'swimming',
-    LapSwimming = 'lap_swimming',
-    OpenWaterSwimming = 'open_water_swimming',
-    StrengthTraining = 'strength_training',
-    IndoorCardio = 'indoor_cardio',
-    Elliptical = 'elliptical',
-    IndoorRowing = 'indoor_rowing',
-    Rowing = 'rowing',
-    Yoga = 'yoga',
-    Pilates = 'pilates',
-    Mountaineering = 'mountaineering',
-    RockClimbing = 'rock_climbing',
-    Bouldering = 'bouldering',
+    MultiSport = 'multi_sport',
+    Steps = 'steps',
+    Diving = 'diving',
+    Safety = 'safety',
     WinterSports = 'winter_sports',
-    Golf = 'golf',
-    MultiSport = 'multi_sport'
+    ParaSports = 'para_sports',
+    TeamSports = 'team_sports',
+    RacketSports = 'racket_sports'
 }
 
+/** Activity subtypes, the `subActivityType` filter of `getActivities` */
 export enum ActivitySubType {
     IndoorCardio = 'indoor_cardio', // Maps to FitnessEquipment
     StrengthTraining = 'strength_training', // Maps to FitnessEquipment
@@ -49,7 +33,151 @@ export enum ActivitySubType {
     Surfing = 'surfing', // Maps to WaterSport
     StreetRunning = 'street_running', // Maps to Running
     TrailRunning = 'trail_running', // Maps to Running
-    IndoorRunning = 'indoor_running' // Maps to Running
+    IndoorRunning = 'indoor_running', // Maps to Running
+    // Maps to Cycling
+    MountainBiking = 'mountain_biking',
+    RoadBiking = 'road_biking',
+    Cyclocross = 'cyclocross',
+    DownhillBiking = 'downhill_biking',
+    TrackCycling = 'track_cycling',
+    RecumbentCycling = 'recumbent_cycling',
+    Bmx = 'bmx',
+    GravelCycling = 'gravel_cycling',
+    VirtualRide = 'virtual_ride',
+    EBikeMountain = 'e_bike_mountain',
+    EBikeFitness = 'e_bike_fitness',
+    HandCycling = 'hand_cycling',
+    IndoorHandCycling = 'indoor_hand_cycling',
+    EnduroMtb = 'enduro_mtb',
+    EEnduroMtb = 'e_enduro_mtb',
+    // Maps to AllRunning
+    TrackRunning = 'track_running',
+    TreadmillRunning = 'treadmill_running',
+    VirtualRun = 'virtual_run',
+    ObstacleRun = 'obstacle_run',
+    UltraRun = 'ultra_run',
+    Canicross = 'canicross',
+    // Maps to FitnessEquipment
+    Elliptical = 'elliptical',
+    StairClimbing = 'stair_climbing',
+    IndoorRowing = 'indoor_rowing',
+    Pilates = 'pilates',
+    IndoorClimbing = 'indoor_climbing',
+    Bouldering = 'bouldering',
+    OnshoreGrindingV2 = 'onshore_grinding_v2',
+    Dance = 'dance',
+    JumpRope = 'jump_rope',
+    Mobility = 'mobility',
+    CrossCountryIndoorSkiing = 'cross_country_indoor_skiing',
+    // Maps to Walking
+    CasualWalking = 'casual_walking',
+    SpeedWalking = 'speed_walking',
+    // Maps to Swimming
+    LapSwimming = 'lap_swimming',
+    OpenWaterSwimming = 'open_water_swimming',
+    // Maps to Other
+    Mountaineering = 'mountaineering',
+    WindKiteSurfing = 'wind_kite_surfing',
+    HorsebackRiding = 'horseback_riding',
+    DrivingGeneral = 'driving_general',
+    Flying = 'flying',
+    WhitewaterRaftingKayaking = 'whitewater_rafting_kayaking',
+    InlineSkating = 'inline_skating',
+    Golf = 'golf',
+    HuntingFishing = 'hunting_fishing',
+    SkyDiving = 'sky_diving',
+    RcDrone = 'rc_drone',
+    RockClimbing = 'rock_climbing',
+    HangGliding = 'hang_gliding',
+    WingsuitFlying = 'wingsuit_flying',
+    FloorClimbing = 'floor_climbing',
+    StopWatch = 'stop_watch',
+    AutoRacing = 'auto_racing',
+    ESport = 'e_sport',
+    MotorcyclingV2 = 'motorcycling_v2',
+    MotocrossV2 = 'motocross_v2',
+    AtvV2 = 'atv_v2',
+    TransitionV2 = 'transition_v2',
+    SwimToBikeTransitionV2 = 'swimToBikeTransition_v2',
+    BikeToRunTransitionV2 = 'bikeToRunTransition_v2',
+    RunToBikeTransitionV2 = 'runToBikeTransition_v2',
+    Hunting = 'hunting',
+    Meditation = 'meditation',
+    DiscGolf = 'disc_golf',
+    Boxing = 'boxing',
+    Archery = 'archery',
+    MixedMartialArts = 'mixed_martial_arts',
+    Overland = 'overland',
+    // Maps to Diving
+    SingleGasDiving = 'single_gas_diving',
+    MultiGasDiving = 'multi_gas_diving',
+    GaugeDiving = 'gauge_diving',
+    ApneaDiving = 'apnea_diving',
+    ApneaHunting = 'apnea_hunting',
+    CcrDiving = 'ccr_diving',
+    PoolApnea = 'pool_apnea',
+    // Maps to Safety
+    Assistance = 'assistance',
+    IncidentDetected = 'incident_detected',
+    FallDetected = 'fall_detected',
+    // Maps to WinterSports
+    SnowmobilingWs = 'snowmobiling_ws',
+    SnowShoeWs = 'snow_shoe_ws',
+    SkatingWs = 'skating_ws',
+    BackcountrySkiingSnowboardingWs = 'backcountry_skiing_snowboarding_ws',
+    SkateSkiingWs = 'skate_skiing_ws',
+    CrossCountrySkiingWs = 'cross_country_skiing_ws',
+    ResortSkiingSnowboardingWs = 'resort_skiing_snowboarding_ws',
+    BackcountrySkiing = 'backcountry_skiing',
+    BackcountrySnowboarding = 'backcountry_snowboarding',
+    ResortSkiing = 'resort_skiing',
+    ResortSnowboarding = 'resort_snowboarding',
+    Skijoring = 'skijoring',
+    // Maps to ParaSports
+    WheelchairPushRun = 'wheelchair_push_run',
+    WheelchairPushWalk = 'wheelchair_push_walk',
+    // Maps to TeamSports
+    Cricket = 'cricket',
+    Rugby = 'rugby',
+    IceHockey = 'ice_hockey',
+    FieldHockey = 'field_hockey',
+    Lacrosse = 'lacrosse',
+    Volleyball = 'volleyball',
+    UltimateDisc = 'ultimate_disc',
+    Softball = 'softball',
+    Soccer = 'soccer',
+    AmericanFootball = 'american_football',
+    Basketball = 'basketball',
+    Baseball = 'baseball',
+    // Maps to RacketSports
+    TableTennis = 'table_tennis',
+    PlatformTennis = 'platform_tennis',
+    Racquetball = 'racquetball',
+    Squash = 'squash',
+    Badminton = 'badminton',
+    Pickleball = 'pickleball',
+    Paddelball = 'paddelball',
+    TennisV2 = 'tennis_v2',
+    // Maps to WaterSport
+    BoatingV2 = 'boating_v2',
+    FishingV2 = 'fishing_v2',
+    KayakingV2 = 'kayaking_v2',
+    KiteboardingV2 = 'kiteboarding_v2',
+    OffshoreGrindingV2 = 'offshore_grinding_v2',
+    PaddlingV2 = 'paddling_v2',
+    WhitewaterRaftingV2 = 'whitewater_rafting_v2',
+    RowingV2 = 'rowing_v2',
+    SailingV2 = 'sailing_v2',
+    StandUpPaddleboardingV2 = 'stand_up_paddleboarding_v2',
+    SurfingV2 = 'surfing_v2',
+    WaterTubing = 'water_tubing',
+    WindsurfingV2 = 'windsurfing_v2',
+    WakeboardingV2 = 'wakeboarding_v2',
+    Wakesurfing = 'wakesurfing',
+    Waterskiing = 'waterskiing',
+    Snorkeling = 'snorkeling',
+    // Maps to Hiking
+    Rucking = 'rucking'
 }
 
 export interface IActivity {
