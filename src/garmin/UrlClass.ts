@@ -6,11 +6,14 @@ export class UrlClass {
     GC_MODERN: string;
     GARMIN_SSO_ORIGIN: string;
     GC_API: string;
+    /** Host of the services that are not served by `GC_API`, such as dog profiles */
+    GCX_API: string;
     constructor(domain: GarminDomain = 'garmin.com') {
         this.domain = domain;
         this.GC_MODERN = `https://connect.${this.domain}/modern`;
         this.GARMIN_SSO_ORIGIN = `https://sso.${this.domain}`;
         this.GC_API = `https://connectapi.${this.domain}`;
+        this.GCX_API = `https://gcx.${this.domain}`;
     }
     get GARMIN_SSO() {
         return `${this.GARMIN_SSO_ORIGIN}/sso`;

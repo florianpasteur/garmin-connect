@@ -540,3 +540,4 @@ export * from './training';
 export * from './logging';
 export * from './equipment';
 export * from './achievements';
+export * from './dog';

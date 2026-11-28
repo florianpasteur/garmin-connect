@@ -194,6 +194,18 @@ export class HttpClient {
         return response?.data;
     }
 
+    /**
+     * Sends a real `DELETE`, for services that reject the method override
+     * that `delete` uses
+     */
+    async deleteRequest<T>(
+        url: string,
+        config?: AxiosRequestConfig<any>
+    ): Promise<T> {
+        const response = await this.client.delete<T>(url, config);
+        return response?.data;
+    }
+
     async patch<T>(
         url: string,
         data: unknown,

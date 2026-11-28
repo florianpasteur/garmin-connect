@@ -384,6 +384,10 @@ export interface IActivity {
     decoDive: unknown;
     pr: boolean;
     parent: boolean;
+    /** Set once a dog was added to the activity */
+    hasDog?: boolean | null;
+    /** Dogs of the activity */
+    dogProfileIds?: number[] | null;
 }
 
 export interface IActivityDetails {
@@ -430,6 +434,8 @@ export interface IActivityDetails {
         lastUpdateDate: string;
         uploadedDate: string;
         videoUrl?: null;
+        hasDog?: boolean;
+        dogProfileIds?: number[];
         hasPolyline: boolean;
         hasChartData: boolean;
         hasHrTimeInZones: boolean;

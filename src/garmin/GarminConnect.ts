@@ -1,5 +1,5 @@
 import { GolfScorecard, GolfSummary } from './types/golf';
-import { AchievementsApi } from './api/AchievementsApi';
+import { DogApi } from './api/DogApi';
 
 export {
     EventCallback,
@@ -9,7 +9,7 @@ export {
     Session
 } from './api/BaseApi';
 
-export default class GarminConnect extends AchievementsApi {
+export default class GarminConnect extends DogApi {
     /**
      * Retrieves golf summary data
      * @returns Summary of golf activities

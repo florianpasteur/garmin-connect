@@ -154,6 +154,10 @@ export interface ActivitySearchOptions {
     endDate?: Date;
     /** Text to search for */
     search?: string;
+    /** Only activities with a dog. Garmin ignores `false` */
+    hasDog?: true;
+    /** Only activities with this dog */
+    dogProfileId?: number;
 }
 
 export interface ActivityFirstAndLast {
@@ -217,6 +221,11 @@ export interface ActivityUpdate {
     accessControlRuleDTO?: {
         typeKey: ActivityPrivacy;
         typeId?: number;
+    };
+    /** Dogs of the activity, see `setActivityDogs`. Send both fields */
+    metadataDTO?: {
+        hasDog: boolean;
+        dogProfileIds: number[];
     };
 }
 

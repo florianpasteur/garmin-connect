@@ -8,8 +8,7 @@ A JavaScript library for accessing and managing your Garmin Connect data. It com
 
 This document provides detailed information about the public API methods available in the `@flow-js/garmin-connect` library.
 
-Several sections show the matching page of the Garmin Connect web app, captured in November 2026. Names, titles, notes and health values in the screenshots are made up. In the table under each
-screenshot, a row without an asterisk reads data: the page was seen calling the endpoint that the method uses. A row marked \* changes your account: it is matched by what the button does, and was not clicked.
+Several sections show the matching page of the Garmin Connect web app, captured in November 2026. Names, titles, notes and health values in the screenshots are made up, and the profile picture is a stand-in. In the table under each screenshot, a row without an asterisk reads data: the page was seen calling the endpoint that the method uses. A row marked \* changes your account: it is matched by what the button does, and was not clicked, except in the [Dogs](#dogs) section.
 
 ## Table of Contents
 
@@ -47,6 +46,7 @@ screenshot, a row without an asterisk reads data: the page was seen calling the 
 -   [Logging and body data](#logging-and-body-data)
 -   [Gear, devices, courses and segments](#gear-devices-courses-and-segments)
 -   [Records, Goals, Badges and Challenges](#records-goals-badges-and-challenges)
+-   [Dogs](#dogs)
 -   [Custom Requests](#custom-requests)
 -   [Testing](#testing)
 
@@ -1833,6 +1833,123 @@ await GCClient.createMultiDayActivity({
     activityIds: []
 });
 await GCClient.deleteMultiDayActivity(eventId);
+```
+
+## Dogs
+
+Dog profiles, the dogs of an activity and statistics per dog. All the requests, writes included, were run in November 2026 against test data, through the Garmin Connect web app. They have **not** been run with the login of this library, and dog profiles are served by another host (`gcx.garmin.com`) than the rest of the library uses.
+
+### Dog Profiles
+
+In Garmin Connect: [Settings, then Dogs](https://connect.garmin.com/app/settings/dogs)
+
+![Dog settings in Garmin Connect](./docs/images/dogs.jpg)
+
+| On screen        | Method                      |
+| ---------------- | --------------------------- |
+| Totals           | `getDogStatsTotals()`       |
+| List of dogs     | `getDogs()`                 |
+| Whether it is on | `getDogActivitiesSetting()` |
+| Add a Dog \*     | `createDog()`               |
+
+```js
+const breeds = await GCClient.getDogBreeds();
+const golden = breeds.find((b) => b.key === 'DOG_BREED_GOLDEN_RETRIEVER');
+
+// These modify the account
+const dog = await GCClient.createDog({
+    name: 'Biscuit', // the only required field
+    primaryBreedId: golden.id,
+    gender: 'male',
+    isNeutered: true,
+    weightInGrams: 30000,
+    birthdate: new Date(2022, 3, 1),
+    birthdatePrecision: 'month' // or 'day', the default
+});
+await GCClient.uploadDogPhoto(dog.id, './biscuit.jpg'); // JPEG, PNG or GIF
+
+const dogs = await GCClient.getDogs({ status: 'active' });
+```
+
+![Profile of one dog in Garmin Connect](./docs/images/dog-profile.jpg)
+
+| On screen                | Method                                             |
+| ------------------------ | -------------------------------------------------- |
+| Picture and details      | `getDog()`                                         |
+| Distance, time and count | `getDogStats()`                                    |
+| Activity table           | `searchActivities({ hasDog: true, dogProfileId })` |
+| Edit Profile \*          | `updateDog()`, `uploadDogPhoto()`                  |
+| Menu \*                  | `setDogStatus()`, `deleteDog()`                    |
+
+```js
+// A field left out keeps its value, null clears it. These modify the account.
+await GCClient.updateDog(dog.id, { weightInGrams: 29500, nickname: null });
+await GCClient.setDogStatus(dog.id, 'retired'); // or 'active'
+await GCClient.deleteDog(dog.id); // cannot be undone
+```
+
+The web app allows 10 active dogs.
+
+### Dogs of an Activity
+
+![Activity with a dog in Garmin Connect](./docs/images/dog-activity.jpg)
+
+| On screen    | Method                                                 |
+| ------------ | ------------------------------------------------------ |
+| Dogs card    | `getDogs()`, `getDogSocialProfiles()`, `getDogStats()` |
+| Edit Dogs \* | `setActivityDogs()`                                    |
+
+```js
+// Replaces the dogs of the activity. These modify the account.
+await GCClient.setActivityDogs(activityId, [dog.id]);
+await GCClient.setActivityDogs(activityId, [], true); // a dog without profile
+await GCClient.setActivityDogs(activityId, []); // no dog
+```
+
+Garmin accepts IDs of dogs that do not exist, so take them from `getDogs()`.
+
+![Activities with a dog in Garmin Connect](./docs/images/dog-activities.jpg)
+
+| On screen   | Method                               |
+| ----------- | ------------------------------------ |
+| Dogs filter | `searchActivities({ hasDog: true })` |
+
+```js
+const withADog = await GCClient.searchActivities({ hasDog: true });
+const withBiscuit = await GCClient.searchActivities({ dogProfileId: dog.id });
+```
+
+`hasDog: false` is not a filter: Garmin ignores it.
+
+### Dog Statistics
+
+Distances are in **centimetres** and durations in **milliseconds**.
+
+```js
+const totals = await GCClient.getDogStatsTotals();
+console.log(totals.countOfActivities, totals.stats.all.distance.sum / 100, 'm');
+
+const [week] = await GCClient.getDogStats([dog.id], {
+    startDate: new Date('2026-11-22'),
+    endDate: new Date('2026-11-28')
+});
+week.stats.all.animals.animalProfileGroups.forEach((group) =>
+    console.log(group.animalProfileId, group.numberOfActivities)
+);
+```
+
+### Settings
+
+```js
+// null when no setting was saved for the dog
+const physio = await GCClient.getDogPhysioSetting(dog.id);
+const all = await GCClient.getDogPhysioSettings();
+
+const feature = await GCClient.getDogActivitiesSetting(); // OPT_IN or OPT_OUT
+
+// These modify the account
+await GCClient.setDogPhysioExcluded(dog.id, true);
+await GCClient.setDogActivitiesOptIn(true);
 ```
 
 ## Custom Requests

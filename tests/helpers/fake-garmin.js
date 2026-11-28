@@ -38,7 +38,8 @@ function send(response, reply) {
  * `{ status, body, headers }`. A `body` of undefined answers 204. Requests
  * without a route get a 404.
  * @returns `{ gc, requests, close }`. Each recorded request has `method` (after
- * the X-Http-Method-Override header), `path`, `query` (an object), `headers`,
+ * the X-Http-Method-Override header), `path`, `query` (an object), `search` (the
+ * raw query string), `headers`,
  * `body` (parsed when JSON) and `rawBody`.
  */
 async function fakeGarmin(routes = {}) {
@@ -61,6 +62,7 @@ async function fakeGarmin(routes = {}) {
             method: request.headers['x-http-method-override'] || request.method,
             path: decodeURIComponent(url.pathname),
             query: Object.fromEntries(url.searchParams),
+            search: url.search,
             headers: request.headers,
             body,
             rawBody
@@ -81,6 +83,7 @@ async function fakeGarmin(routes = {}) {
 
     const gc = new GarminConnect({ username: 'user', password: 'password' });
     gc.url.GC_API = `http://127.0.0.1:${server.address().port}`;
+    gc.url.GCX_API = `${gc.url.GC_API}/gcx`;
     gc.client.client.defaults.proxy = false;
     gc.client.oauth2Token = { access_token: 'test-token' };
 
