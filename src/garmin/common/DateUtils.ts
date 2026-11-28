@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon';
+
 export function toDateString(date: Date) {
     const offset = date.getTimezoneOffset();
     const offsetDate = new Date(date.getTime() - offset * 60 * 1000);
@@ -23,19 +25,43 @@ export function calculateTimeDifference(
     };
 }
 
-export function getLocalTimestamp(date: Date, timezone: string) {
-    // Get the current local date timestamp in ISO format
-    const localTimestampISO = date.toISOString().substring(0, 23);
+/**
+ * The wall clock time of `date` in `timezone`, as `YYYY-MM-DDTHH:mm:ss.SSS`.
+ * Does not depend on the timezone of the system.
+ * @param timezone - IANA name, e.g. `Europe/Paris`
+ * @throws RangeError when the timezone is unknown
+ */
+export function getLocalTimestamp(date: Date, timezone: string): string {
+    const local = DateTime.fromJSDate(date).setZone(timezone);
+    if (!local.isValid) {
+        throw new RangeError('Invalid time zone specified: ' + timezone);
+    }
+    return local.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+}
 
-    // Convert the ISO timestamp to local timezone while maintaining the same format
-    const localTimestamp = new Date(localTimestampISO).toLocaleString('en-US', {
-        timeZone: timezone,
-        hour12: false
-    });
-
-    // Format the local timestamp as `YYYY-MM-DDTHH:MM:SS.SSS`
-    const formattedLocalTimestamp = new Date(localTimestamp)
-        .toISOString()
-        .substring(0, 23);
-    return formattedLocalTimestamp;
+/**
+ * Splits an inclusive date range into consecutive ranges of at most `maxDays`
+ * @returns Ranges as YYYY-MM-DD strings, oldest first
+ * @throws Error when `start` is after `end`
+ */
+export function splitDateRange(
+    start: Date,
+    end: Date,
+    maxDays: number
+): Array<{ start: string; end: string }> {
+    const day = 24 * 60 * 60 * 1000;
+    const toUtc = (date: Date) => new Date(toDateString(date)).getTime();
+    const format = (time: number) => new Date(time).toISOString().slice(0, 10);
+    const last = toUtc(end);
+    let first = toUtc(start);
+    if (first > last) {
+        throw new Error('splitDateRange: start date is after end date');
+    }
+    const ranges: Array<{ start: string; end: string }> = [];
+    while (first <= last) {
+        const chunkEnd = Math.min(first + (maxDays - 1) * day, last);
+        ranges.push({ start: format(first), end: format(chunkEnd) });
+        first = chunkEnd + day;
+    }
+    return ranges;
 }

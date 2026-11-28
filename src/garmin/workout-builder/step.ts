@@ -1,19 +1,87 @@
 import { Duration, NoDuration } from './duration';
 import { Exercise } from './exercise';
 import { NoTarget, Target } from './target';
+import { SwimDrill, SwimEquipment, SwimStroke } from './swim';
 
 export class Step {
+    private optionalFields: Record<string, unknown> = {};
+
     constructor(
         private stepType: StepType,
         private duration: Duration = new NoDuration(),
         private target: Target = new NoTarget(),
         private notes: string = '',
         private exercise?: Exercise
-    ) {}
+    ) {
+        if (stepType === StepType.Repeat) {
+            throw new Error('Use RepeatGroup to create a repeat step');
+        }
+    }
 
-    build(index: number) {
+    /**
+     * Add a second target to the step, e.g. cadence next to a power target.
+     * The `secondary*` field names are Garmin's, but which combinations of
+     * targets Garmin accepts is unverified.
+     *
+     * @returns this step
+     */
+    withSecondaryTarget(target: Target) {
+        const built = target.build();
+        return this.addFields({
+            secondaryTargetType: built.targetType,
+            secondaryTargetValueOne: built.targetValueOne ?? null,
+            secondaryTargetValueTwo: built.targetValueTwo ?? null,
+            secondaryTargetValueUnit: built.targetValueUnit ?? null,
+            secondaryZoneNumber: built.zoneNumber ?? null
+        });
+    }
+
+    /**
+     * Set the swim stroke of the step
+     * @returns this step
+     */
+    withStroke(stroke: SwimStroke) {
+        return this.addFields(stroke.build());
+    }
+
+    /**
+     * Set the swim equipment of the step
+     * @returns this step
+     */
+    withEquipment(equipment: SwimEquipment) {
+        return this.addFields(equipment.build());
+    }
+
+    /**
+     * Set the swim drill type of the step. The `drillType` field format is
+     * unverified.
+     * @returns this step
+     */
+    withDrill(drill: SwimDrill) {
+        return this.addFields(drill.build());
+    }
+
+    /**
+     * Set the intensity of the step. The `intensityType` field name and format
+     * are unverified.
+     * @returns this step
+     */
+    withIntensity(intensity: StepIntensity) {
+        return this.addFields(intensity.build());
+    }
+
+    private addFields(fields: Record<string, unknown>) {
+        this.optionalFields = { ...this.optionalFields, ...fields };
+        return this;
+    }
+
+    /**
+     * @param index - position of the step in the workout, starting at 1
+     * @param childStepId - id shared by the steps of a repeat group
+     */
+    build(index: number, childStepId: number | null = null) {
         return {
-            childStepId: null,
+            childStepId,
             description: this.notes,
             equipmentType: {
                 displayOrder: null,
@@ -46,7 +114,8 @@ export class Step {
                 exerciseName: null,
                 weightValue: null,
                 weightUnit: null
-            })
+            }),
+            ...this.optionalFields
         };
     }
 }
@@ -71,4 +140,26 @@ export class StepType {
     static Rest = new StepType('rest', 5);
     static Cooldown = new StepType('cooldown', 2);
     static Other = new StepType('other', 7);
+    static Main = new StepType('main', 8);
+    /** Step type of a {@link RepeatGroup}, not usable in a {@link Step} */
+    static Repeat = new StepType('repeat', 6);
+}
+
+export class StepIntensity {
+    private constructor(readonly id: number, readonly key: string) {}
+
+    build() {
+        return {
+            intensityType: {
+                intensityTypeId: this.id,
+                intensityTypeKey: this.key,
+                displayOrder: this.id
+            }
+        };
+    }
+
+    static Active = new StepIntensity(1, 'active');
+    static Rest = new StepIntensity(2, 'rest');
+    static WarmUp = new StepIntensity(3, 'warmup');
+    static Cooldown = new StepIntensity(4, 'cooldown');
 }

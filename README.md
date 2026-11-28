@@ -4,9 +4,11 @@ This is a fork of https://github.com/Pythe1337N/garmin-connect which was inspire
 
 ---
 
-A JavaScript library for accessing and managing your Garmin Connect data. It comes with methods to get and set information in your Garmin account, and also supports [custom requests](#custom-requests) using `GET`, `POST`, and `PUT` so you can cover additional needs.
+A JavaScript library for accessing and managing your Garmin Connect data. It comes with methods to get and set information in your Garmin account, and also supports [custom requests](#custom-requests) using `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and GraphQL so you can cover additional needs.
 
 This document provides detailed information about the public API methods available in the `@flow-js/garmin-connect` library.
+
+Several sections show the matching page of the Garmin Connect web app, captured in November 2026. Names, titles, notes and health values in the screenshots are made up, and the profile picture is a stand-in. In the table under each screenshot, a row without an asterisk reads data: the page was seen calling the endpoint that the method uses. A row marked \* changes your account: it is matched by what the button does, and was not clicked, except in the [Dogs](#dogs) section.
 
 ## Table of Contents
 
@@ -36,7 +38,17 @@ This document provides detailed information about the public API methods availab
 -   [Gear](#gear)
 -   [GPX and Courses](#gpx-and-courses)
 -   [Calendar](#calendar)
+-   [Activity Details](#activity-details)
+-   [Daily Health and Wellness](#daily-health-and-wellness)
+-   [Training Metrics and Biometrics](#training-metrics-and-biometrics)
+-   [Workouts, calendar and training plans](#workouts-calendar-and-training-plans)
+-   [Workout builder](#workout-builder)
+-   [Logging and body data](#logging-and-body-data)
+-   [Gear, devices, courses and segments](#gear-devices-courses-and-segments)
+-   [Records, Goals, Badges and Challenges](#records-goals-badges-and-challenges)
+-   [Dogs](#dogs)
 -   [Custom Requests](#custom-requests)
+-   [Testing](#testing)
 
 ## Authentication
 
@@ -260,6 +272,16 @@ Full example: [`examples/example.js`](examples/example.js)
 
 ### Getting Activities
 
+In Garmin Connect: [Activities](https://connect.garmin.com/app/activities)
+
+![Activity list in Garmin Connect](./docs/images/activities.jpg)
+
+| On screen          | Method                                  |
+| ------------------ | --------------------------------------- |
+| Activity list      | `getActivities()`, `searchActivities()` |
+| Manual Activity \* | `createManualActivity()`                |
+| Import \*          | `uploadActivity()`                      |
+
 ```js
 /**
  * Retrieves a list of activities matching the specified criteria
@@ -284,7 +306,7 @@ const activities = await GCClient.getActivities(
     0,
     10,
     ActivityType.Running,
-    ActivitySubType.Outdoor
+    ActivitySubType.TrailRunning
 );
 ```
 
@@ -297,6 +319,19 @@ async countActivities(): Promise<ICountActivities>
 ```
 
 ### Individual Activity Operations
+
+In Garmin Connect: [Activities, then one activity](https://connect.garmin.com/app/activities)
+
+![Page of one activity in Garmin Connect](./docs/images/activity.jpg)
+
+| On screen                                                         | Method                                                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Title and totals                                                  | `getActivity()`                                                                                         |
+| Map and charts                                                    | `getActivityDetails()`                                                                                  |
+| Splits, weather and zones (the splits and zones are further down) | `getActivitySplits()`, `getActivityWeather()`, `getActivityHeartRateZones()`, `getActivityPowerZones()` |
+| Pencil next to the title \*                                       | `renameActivity()`                                                                                      |
+| Photos \*                                                         | `uploadActivityPhoto()`                                                                                 |
+| Gear \*                                                           | `linkGearToActivity()`, `unlinkGearFromActivity()`                                                      |
 
 ```js
 /**
@@ -378,13 +413,11 @@ async downloadOriginalActivityData(
  * Note: Garmin changed the upload API in v1.4.4, the response `detailedImportResult` no longer contains the new activityId.
  *
  * @param file - Path to the activity file
- * @param format - 'fit' | 'gpx' | 'tcx'
+ * @param format - 'fit' | 'gpx' | 'tcx', defaults to the file extension,
+ * or 'fit' when the file has none
  * @returns Response from the upload operation
  */
-async uploadActivity(
-    file: string,
-    format: UploadFileTypeTypeValue = 'fit'
-)
+async uploadActivity(file: string, format?: UploadFileTypeTypeValue)
 ```
 
 Example:
@@ -420,6 +453,28 @@ Full example: [`examples/example-image.js`](examples/example-image.js)
 ## Workouts
 
 ### Managing Workouts
+
+In Garmin Connect: [Workouts](https://connect.garmin.com/app/workouts)
+
+![Workout list in Garmin Connect](./docs/images/workouts.jpg)
+
+| On screen           | Method            |
+| ------------------- | ----------------- |
+| My Workouts         | `getWorkouts()`   |
+| Create a Workout \* | `createWorkout()` |
+
+In Garmin Connect: [Workouts, then one workout](https://connect.garmin.com/app/workouts)
+
+![Page of one workout in Garmin Connect](./docs/images/workout-detail.jpg)
+
+| On screen          | Method                  |
+| ------------------ | ----------------------- |
+| Steps and targets  | `getWorkoutDetail()`    |
+| Edit Workout \*    | `updateWorkout()`       |
+| Send to Device \*  | `sendWorkoutToDevice()` |
+| Add to Calendar \* | `scheduleWorkout()`     |
+| Duplicate \*       | `copyWorkout()`         |
+| Delete Workout \*  | `deleteWorkout()`       |
 
 ```js
 /**
@@ -580,10 +635,11 @@ Supported mappings include time and distance durations, lap press, pace / HR / p
 /**
  * Retrieves step count for a specific date
  * @param date - The date to get step count for, defaults to current date
- * @returns Total step count for the specified date
+ * @returns Total step count for the specified date, or null when Garmin has
+ * a record for the date without a step count (e.g. no device data)
  * @throws Error if steps data not found for the date
  */
-async getSteps(date = new Date()): Promise<number>
+async getSteps(date = new Date()): Promise<number | null>
 ```
 
 Example:
@@ -593,6 +649,14 @@ const totalSteps = await GCClient.getSteps(new Date('2020-03-24'));
 ```
 
 ### Sleep
+
+In Garmin Connect: [Sleep](https://connect.garmin.com/app/sleep)
+
+![Sleep page in Garmin Connect](./docs/images/sleep.jpg)
+
+| On screen        | Method                                 |
+| ---------------- | -------------------------------------- |
+| Sleep of the day | `getSleepData()`, `getSleepDuration()` |
 
 ```js
 /**
@@ -626,6 +690,18 @@ async getSleepDuration(
 ````
 
 ### Weight
+
+In Garmin Connect: [Weight](https://connect.garmin.com/app/weight)
+
+![Weight page in Garmin Connect](./docs/images/weight.jpg)
+
+| On screen      | Method                 |
+| -------------- | ---------------------- |
+| Weigh-ins      | `getDailyWeightData()` |
+| Goal           | `getWeightGoals()`     |
+| Add Weight \*  | `updateWeight()`       |
+| Bin icon \*    | `deleteWeight()`       |
+| Weight Goal \* | `setWeightGoal()`      |
 
 ```js
 /**
@@ -673,11 +749,21 @@ async updateWeight(
 
 ### Hydration
 
+In Garmin Connect: [Hydration](https://connect.garmin.com/app/hydration)
+
+![Hydration page in Garmin Connect](./docs/images/hydration.jpg)
+
+| On screen         | Method                                                 |
+| ----------------- | ------------------------------------------------------ |
+| Intake of the day | `getDailyHydration()`                                  |
+| Plus and minus \* | `updateHydrationLogMl()`, `updateHydrationLogOunces()` |
+
 ```js
 /**
  * Retrieves hydration data in fluid ounces for a specific date
  * @param date - The date to get hydration data for, defaults to current date
- * @returns Hydration value in fluid ounces for the specified date
+ * @returns Hydration value in fluid ounces for the specified date, 0 when
+ * nothing is logged
  * @throws Error if hydration data is invalid or empty
  */
 async getDailyHydration(date = new Date()): Promise<number>
@@ -794,6 +880,18 @@ async unlinkGearFromActivity(
 ```
 
 ## GPX and Courses
+
+In Garmin Connect: [Courses](https://connect.garmin.com/app/courses)
+
+![Course list in Garmin Connect](./docs/images/courses.jpg)
+
+| On screen    | Method                                                  |
+| ------------ | ------------------------------------------------------- |
+| My Courses   | `listCourses()`                                         |
+| Favorites    | `getFavoriteCourses()`                                  |
+| Import \*    | `importGpx()`, `createCourse()`                         |
+| Star icon \* | `addCourseToFavorites()`, `removeCourseFromFavorites()` |
+| Bin icon \*  | `deleteCourse()`                                        |
 
 ````js
 /**
@@ -972,6 +1070,14 @@ Full example: [`examples/example-gpx-file.js`](examples/example-gpx-file.js)
 
 ## Calendar
 
+In Garmin Connect: [Calendar](https://connect.garmin.com/app/calendar/2023/9)
+
+![Month view of the Garmin Connect calendar](./docs/images/calendar.jpg)
+
+| On screen                                       | Method                            |
+| ----------------------------------------------- | --------------------------------- |
+| October 2023 (months start at 0, as in the URL) | `getMonthCalendarEvents(2023, 9)` |
+
 ```js
 /**
  * Retrieves calendar events for a specific year.
@@ -1008,6 +1114,844 @@ async getWeekCalendarEvents(
 ): Promise<any>
 ```
 
+## Activity Details
+
+All of these read data. `activityId` is the number found in the activity list.
+
+### Searching Activities
+
+`getActivities` keeps its positional arguments. Use `searchActivities` to filter
+by date or text.
+
+```js
+const activities = await GCClient.searchActivities({
+    startDate: new Date('2026-01-01'),
+    endDate: new Date('2026-01-31'),
+    search: 'morning',
+    activityType: ActivityType.AllRunning,
+    start: 0,
+    limit: 20
+});
+const { firstActivityId, lastActivityId } =
+    await GCClient.getFirstAndLastActivity();
+```
+
+`searchActivities` and the methods that create or edit activities accept an
+enum value or any `typeKey` returned by `getActivityTypes()`. `getActivities`
+takes the `ActivityType` and `ActivitySubType` enums. `ActivityType.Running` is
+`street_running`; `ActivityType.AllRunning` is `running`.
+
+### Data of One Activity
+
+```js
+const details = await GCClient.getActivityDetails(activityId, {
+    maxChartSize: 2000,
+    maxPolylineSize: 4000
+});
+const splits = await GCClient.getActivitySplits(activityId);
+const typedSplits = await GCClient.getActivityTypedSplits(activityId);
+const summaries = await GCClient.getActivitySplitSummaries(activityId);
+const weather = await GCClient.getActivityWeather(activityId);
+const heartRateZones = await GCClient.getActivityHeartRateZones(activityId);
+const powerZones = await GCClient.getActivityPowerZones(activityId);
+const exerciseSets = await GCClient.getActivityExerciseSets(activityId);
+const workouts = await GCClient.getActivityWorkouts(activityId);
+const polyline = await GCClient.getActivityPolyline(activityId);
+```
+
+### Types and Statistics
+
+```js
+const activityTypes = await GCClient.getActivityTypes();
+const eventTypes = await GCClient.getEventTypes();
+const powerCurve = await GCClient.getPowerCurve();
+const stats = await GCClient.getActivityStats({
+    startDate: new Date('2026-01-01'),
+    endDate: new Date(),
+    aggregation: 'lifetime',
+    metric: 'duration'
+});
+```
+
+### Creating and Editing Activities
+
+These methods modify your account. Their requests were read from the Garmin
+Connect web app and have not been verified against the API.
+
+```js
+// The privacy defaults to 'private'
+const created = await GCClient.createManualActivity({
+    activityName: 'Evening walk',
+    activityType: ActivityType.Walking,
+    startTime: new Date(),
+    timezone: 'Europe/Paris',
+    durationInSeconds: 1800,
+    distanceInMeters: 2000
+});
+
+await GCClient.updateActivity(activityId, {
+    description: 'Felt good',
+    activityTypeDTO: { typeKey: ActivityType.Hiking },
+    eventTypeDTO: { typeKey: 'uncategorized' },
+    accessControlRuleDTO: { typeKey: 'private' }
+});
+
+// Photo IDs are listed in `metadataDTO.activityImages` of the activity
+await GCClient.deleteActivityPhoto(activityId, imageId);
+```
+
+Full example: [`examples/example-activity-details.js`](examples/example-activity-details.js)
+
+## Daily Health and Wellness
+
+All methods here only read. Dates are `Date` objects, and single-day methods
+default to today. Metrics are `null` when Garmin has no data for them. Several
+response types are loose because only empty responses have been observed. See
+`examples/example-health.js`.
+
+### Daily Summary and Wellness
+
+```js
+const summary = await GCClient.getDailySummary(new Date('2020-03-24'));
+const stress = await GCClient.getStress(date);
+const respiration = await GCClient.getRespiration(date);
+const spo2 = await GCClient.getSpO2(date);
+const intensity = await GCClient.getIntensityMinutes(date);
+const floors = await GCClient.getFloors(date);
+const lifestyle = await GCClient.getLifestyleLog(date);
+const hydration = await GCClient.getHydrationSummary(date); // includes the goal, in ml
+
+// Lists, empty when there is nothing
+const bodyBatteryEvents = await GCClient.getBodyBatteryEvents(date);
+const stepsChart = await GCClient.getStepsChart(date);
+const events = await GCClient.getDailyEvents(date);
+
+// null when there is no data
+const hrv = await GCClient.getHrv(date);
+const healthStatus = await GCClient.getHealthStatus(date);
+
+// getWellnessActivities(start = 1, limit = 20, until = new Date())
+const activities = await GCClient.getWellnessActivities(1, 20);
+```
+
+### Sleep Summaries and Statistics
+
+```js
+const sleep = await GCClient.getSleep(date); // summary only, or null
+const naps = await GCClient.getNaps(date);
+const summaries = await GCClient.getSleepSummaries(start, end);
+const scores = await GCClient.getSleepScores(start, end);
+
+const stats = await GCClient.getSleepStats(start, end);
+stats.individualStats; // every night of the range
+stats.periods; // [{ startDate, endDate, overallStats }]
+```
+
+Garmin computes `overallStats` per request, and one request covers at most 28
+days. Longer ranges therefore return one entry per period in `periods`. The
+averages are not combined.
+
+### Date Ranges
+
+Both dates are included. Garmin limits these endpoints to 28 days (or the limit
+is unknown), so longer ranges are requested in consecutive chunks and
+concatenated.
+
+```js
+const bodyBattery = await GCClient.getBodyBattery(start, end); // daily reports
+const steps = await GCClient.getStepsRange(start, end);
+const stress = await GCClient.getStressRange(start, end);
+const restingHeartRate = await GCClient.getRestingHeartRateRange(start, end);
+const intensity = await GCClient.getIntensityMinutesRange(start, end);
+const floors = await GCClient.getFloorsRange(start, end);
+const hydration = await GCClient.getHydrationRange(start, end);
+const respiration = await GCClient.getRespirationRange(start, end);
+const bodyBatteryStats = await GCClient.getBodyBatteryRange(start, end);
+
+// One entry per request that had data: [{ startDate, endDate, data }]
+const hrv = await GCClient.getHrvRange(start, end);
+```
+
+### Weight History and Goals
+
+Weights are in grams. These range methods send a single request.
+
+```js
+const range = await GCClient.getWeightRange(start, end);
+const latest = await GCClient.getLatestWeight(date); // or null
+const first = await GCClient.getFirstWeight(); // or null
+const goals = await GCClient.getWeightGoals(start, end);
+```
+
+### Wellness Files
+
+```js
+// Saves wellness-YYYY-MM-DD.zip and returns its path, or null without content
+const file = await GCClient.downloadDailyWellnessFile(date, './some/dir');
+```
+
+## Training Metrics and Biometrics
+
+All of these are read-only. Without data from a compatible device, many of them
+return `null`, an empty list or an object with empty members. The shapes of the
+responses that have only been seen empty are not typed yet. See
+`examples/example-metrics.js`.
+
+Single day reads default to today:
+
+```js
+await GCClient.getTrainingReadiness(new Date('2026-03-15'));
+await GCClient.getTrainingStatus();
+await GCClient.getVo2Max();
+await GCClient.getEnduranceScore(); // null without data
+await GCClient.getHillScore(); // null without data
+await GCClient.getHeatAltitudeAcclimation(); // null without data
+await GCClient.getFitnessAge();
+```
+
+Date ranges:
+
+```js
+const start = new Date('2026-03-01');
+const end = new Date('2026-03-28');
+
+await GCClient.getVo2MaxRange(start, end);
+await GCClient.getRacePredictionsRange(start, end);
+await GCClient.getRunningTolerance(start, end); // daily
+await GCClient.getRunningTolerance(start, end, 'weekly');
+
+const latest = await GCClient.getRacePredictions(); // null without data
+```
+
+Thresholds and zones:
+
+```js
+await GCClient.getLactateThreshold();
+await GCClient.getFtp('CYCLING');
+await GCClient.getHeartRateZones();
+await GCClient.getPowerZones();
+await GCClient.getCriticalSwimSpeed(); // null without data
+```
+
+User statistics and details:
+
+```js
+const statistics = await GCClient.getUserStatistics();
+
+// Metric 60 (the default) is the resting heart rate
+const wellness = await GCClient.getUserWellnessStatistics(start, end, 60);
+
+const information = await GCClient.getPersonalInformation();
+```
+
+## Workouts, calendar and training plans
+
+Write methods change your account. Those marked "unverified" were derived from
+Garmin's web app and have not been confirmed against the live API.
+
+Full example: [`examples/example-training.js`](examples/example-training.js)
+
+### Editing, copying and downloading workouts
+
+Updating, copying and downloading are unverified.
+
+```js
+const detail = await GCClient.getWorkoutDetail({ workoutId });
+
+// Send the whole workout back with your changes
+await GCClient.updateWorkout({ ...detail, workoutName: 'New name' });
+
+await GCClient.copyWorkout(workoutId, 'Copy of my workout');
+
+// Writes ./workouts/<workoutId>.fit and returns that path
+const file = await GCClient.downloadWorkout(workoutId, './workouts');
+
+// Sport, step, condition and target types
+const types = await GCClient.getWorkoutTypes();
+```
+
+### Scheduled workouts
+
+A `scheduleId` identifies one calendar entry, not the workout. Unscheduling and
+rescheduling are unverified.
+
+```js
+await GCClient.getScheduledWorkouts(
+    new Date('2026-01-01'),
+    new Date('2026-01-31')
+);
+await GCClient.getScheduledWorkout(scheduleId);
+await GCClient.rescheduleWorkout(scheduleId, new Date('2026-02-03'));
+await GCClient.unscheduleWorkout(scheduleId);
+```
+
+### Sending a workout to a device
+
+Unverified: this request has never been sent to Garmin.
+
+```js
+// The message name defaults to the workout name
+await GCClient.sendWorkoutToDevice(workoutId, deviceId, 'Today');
+```
+
+### Calendar notes
+
+Unverified.
+
+```js
+await GCClient.createNote('Rest day', 'Easy walk only', new Date());
+await GCClient.getNote(noteId);
+await GCClient.deleteNote(noteId);
+```
+
+### Events
+
+Only `getUpcomingEvents` has been called against Garmin. The query parameters of
+`getEvents` and the body of `updateEvent` are unknown, so they are passed
+through as you give them.
+
+```js
+// 30 days ahead, at most 10 events, starting today
+await GCClient.getUpcomingEvents(30, 10);
+await GCClient.getEvents(params);
+await GCClient.getPrimaryEvent();
+await GCClient.getEvent(eventId);
+await GCClient.updateEvent(eventId, event);
+await GCClient.deleteEvent(eventId);
+```
+
+### Training plans
+
+The three single-plan reads are unverified.
+
+```js
+const { trainingPlanList } = await GCClient.getTrainingPlans(20);
+await GCClient.getTrainingPlan(planId);
+await GCClient.getAdaptiveTrainingPlan(planId);
+await GCClient.getPhasedTrainingPlan(planId);
+```
+
+## Workout builder
+
+See `examples/example-workout.js`, `examples/example-strength-workout.js` and
+`examples/example-repeat-workout.js`. Parts of Garmin's workout format used for
+the features below are not verified: check the result in Garmin Connect, or read
+the workout back with `getWorkoutDetail`.
+
+Repeat groups (they can be nested):
+
+```js
+const workout = new WorkoutBuilder(WorkoutType.Running, '4 x 400 m')
+    .addStep(new Step(StepType.WarmUp, TimeDuration.fromMinutes(10)))
+    .addStep(
+        new RepeatGroup(4, [
+            new Step(StepType.Run, DistanceDuration.fromMeters(400)),
+            new Step(StepType.Recovery, TimeDuration.fromSeconds(90))
+        ])
+    )
+    .build();
+
+await GCClient.createWorkout(workout);
+```
+
+Secondary targets:
+
+```js
+new Step(
+    StepType.Run,
+    TimeDuration.fromMinutes(10),
+    PowerZone.power(220, 10)
+).withSecondaryTarget(CadenceTarget.cadence(90, 5));
+```
+
+Swimming:
+
+```js
+new WorkoutBuilder(WorkoutType.Swimming, 'Drills')
+    .setPoolLength(25, 'meter')
+    .addStep(
+        new Step(StepType.Run, DistanceDuration.fromMeters(100))
+            .withStroke(SwimStroke.Free)
+            .withDrill(SwimDrill.Kick)
+            .withEquipment(SwimEquipment.Kickboard)
+            .withSecondaryTarget(
+                new SwimInstructionTarget(SwimInstruction.Easy)
+            )
+    )
+    .addStep(new Step(StepType.Rest, FixedRestDuration.fromSeconds(20)));
+```
+
+Multisport, with one segment per sport:
+
+```js
+new WorkoutBuilder(WorkoutType.MultiSport, 'Bike and run')
+    .addSegment(new WorkoutSegment(WorkoutType.Cycling).addStep(bikeStep))
+    .addSegment(new WorkoutSegment(WorkoutType.Running).addStep(runStep));
+```
+
+| Builder part  | Available                                                                                                                                                                                                                                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WorkoutType` | `Running`, `Cycling`, `Swimming`, `Strength`, `Cardio`, `Other`, `Yoga`, `Pilates`, `Hiit`, `MultiSport`, `Mobility`, `Rucking`                                                                                                                                                                                                     |
+| `StepType`    | `WarmUp`, `Run`, `Exercise`, `Recovery`, `Rest`, `Cooldown`, `Other`, `Main`                                                                                                                                                                                                                                                        |
+| Durations     | `TimeDuration`, `DistanceDuration`, `LapPressDuration`, `RepsDuration`, `CaloriesDuration`, `HeartRateDuration`, `PowerDuration`, `FixedRestDuration`, `RepetitionTimeDuration`, `SwimCssOffsetDuration`, and `ConditionDuration` with any `EndConditionType`                                                                       |
+| Targets       | `NoTarget`, `PaceTarget`, `CadenceTarget`, `HrmZoneTarget`, `HrmTarget`, `PowerZoneTarget`, `PowerZone`, `SpeedTarget`, `GradeTarget`, `HeartRateLapTarget`, `PowerLapTarget`, `AveragePowerTarget`, `SpeedLapTarget`, `SwimStrokeTarget`, `SwimCssOffsetTarget`, `SwimInstructionTarget`, and `CustomTarget` with any `TargetKind` |
+| Step options  | `withSecondaryTarget`, `withStroke`, `withEquipment`, `withDrill`, `withIntensity`                                                                                                                                                                                                                                                  |
+
+`toIntervalsIcuDescription` writes repeat groups as `Main Set 4x` blocks.
+Nested repeats are written out in full, as intervals.icu cannot nest them.
+
+## Logging and body data
+
+Methods marked "modifies the account" write to your Garmin account. Their endpoints were read from Garmin's web code and have not been verified against Garmin.
+
+Dates are taken as days in the system timezone. To turn a `calendarDate` from a response back into a `Date`, use `new Date(calendarDate + 'T00:00:00')`.
+
+### Weight
+
+```js
+// Modifies the account. Pounds by default, or 'kg'
+await GCClient.updateWeight(new Date(), 81.5, 'Europe/Paris', 'kg');
+
+// Modifies the account
+const { dateWeightList } = await GCClient.getDailyWeightData(new Date());
+const entry = dateWeightList[0];
+await GCClient.deleteWeight(
+    new Date(entry.calendarDate + 'T00:00:00'),
+    entry.samplePk
+);
+```
+
+### Hydration
+
+```js
+// Modifies the account. The value is added to the day, negative values subtract
+await GCClient.updateHydrationLogMl(new Date(), 250);
+await GCClient.updateHydrationLogOunces(new Date(), 8);
+```
+
+### Blood pressure
+
+In Garmin Connect: [Blood Pressure](https://connect.garmin.com/app/blood-pressure)
+
+![Blood pressure page in Garmin Connect](./docs/images/blood-pressure.jpg)
+
+| On screen                     | Method                  |
+| ----------------------------- | ----------------------- |
+| Chart and readings of the day | `getBloodPressureDay()` |
+| Add Reading \*                | `logBloodPressure()`    |
+
+```js
+await GCClient.getBloodPressureRange(
+    new Date('2024-01-01T00:00:00'),
+    new Date()
+);
+const day = await GCClient.getBloodPressureDay(new Date());
+
+// Modifies the account. The timezone defaults to the system timezone
+const reading = { systolic: 118, diastolic: 76, pulse: 61, notes: 'rest' };
+await GCClient.logBloodPressure(reading, new Date(), 'Europe/Paris');
+
+// Modifies the account. An edit replaces the whole measurement
+const measurement = day.bloodPressureMeasurements[0];
+const time = new Date(measurement.measurementTimestampGMT + 'Z');
+await GCClient.updateBloodPressure(measurement.version, reading, time);
+
+// Modifies the account. Read the day again if you edited the measurement
+await GCClient.deleteBloodPressure(
+    new Date(measurement.measurementTimestampLocal),
+    measurement.version
+);
+```
+
+### Sleep and naps
+
+These modify the account. The payloads are unverified and sent as you give them.
+
+```js
+await GCClient.createManualSleep(payload);
+await GCClient.updateManualSleep(sleepId, payload);
+await GCClient.updateSleepNote(sleepId, payload);
+await GCClient.logNap(payload);
+```
+
+### Nutrition
+
+```js
+await GCClient.getNutritionStatus();
+await GCClient.getNutritionDailyLog(new Date());
+await GCClient.getNutritionMeals(new Date());
+await GCClient.getNutritionSettings(new Date()); // null when none are set
+await GCClient.searchFoods('apple', {
+    start: 0,
+    limit: 20,
+    regionCode: 'US',
+    languageCode: 'en'
+});
+await GCClient.getCustomFoods();
+await GCClient.getCustomFood(customFoodUuid);
+
+// These modify the account. Item and food payloads are unverified
+await GCClient.logFoods(new Date(), foodLogItems);
+await GCClient.quickAddFoods(new Date(), quickAddItems);
+await GCClient.deleteFoodLogs(new Date(), logIds);
+await GCClient.saveCustomFood(customFood);
+await GCClient.deleteCustomFood(customFoodId);
+```
+
+### Cycle tracking
+
+Sensitive health data, available when cycle tracking is turned on for the account.
+
+```js
+await GCClient.getMenstrualCycleDayView(new Date());
+await GCClient.getMenstrualCycleSummary(new Date());
+await GCClient.getMenstrualCycleCalendar(
+    new Date('2024-01-01T00:00:00'),
+    new Date()
+);
+await GCClient.getLastConfirmedMenstrualCycle(new Date());
+
+// Modifies the account. The payload is unverified
+await GCClient.logMenstrualCycleDay(new Date(), dailyLog);
+```
+
+### Glucose
+
+```js
+await GCClient.getGlucoseDay(new Date());
+await GCClient.getGlucoseRange(new Date('2024-01-01T00:00:00'), new Date());
+
+// These modify the account. The payload and the id are unverified
+await GCClient.logGlucose(entry);
+await GCClient.deleteGlucose(glucoseId);
+```
+
+## Gear, devices, courses and segments
+
+See [examples/example-equipment.js](./examples/example-equipment.js). Many of
+these endpoints were found in Garmin's web code: where a response type is
+`unknown` or a loose object, its shape is unverified.
+
+### Gear
+
+In Garmin Connect: [Gear](https://connect.garmin.com/app/gear)
+
+![Gear page in Garmin Connect](./docs/images/gear.jpg)
+
+| On screen   | Method                                |
+| ----------- | ------------------------------------- |
+| Gear cards  | `getGearList()`, `getUserGearTypes()` |
+| Add Gear \* | `createGear()`                        |
+
+`getGear` and `getGearsForActivity` return the legacy shape. The gear v2 methods
+add usage totals.
+
+```js
+const gear = await GCClient.getGearList();
+await GCClient.getGearDetails(gear[0].uuid);
+await GCClient.getAvailableGear(); // or getAvailableGear(date)
+
+await GCClient.getGearTypes();
+await GCClient.getGearUsageTypes();
+await GCClient.getUserGearTypes();
+await GCClient.getGearCollections();
+```
+
+These modify the account. The request bodies and status values are unverified.
+
+```js
+await GCClient.createGear(payload);
+await GCClient.updateGear(gearId, payload);
+await GCClient.setGearStatus(gearId, status); // e.g. to retire gear
+await GCClient.deleteGearImage(gearId, imageId);
+await GCClient.removeAllGearFromActivity(activityId);
+```
+
+### Devices
+
+```js
+await GCClient.getDevices();
+const device = await GCClient.getLastUsedDevice(); // null without a device
+await GCClient.getAllDeviceInfo();
+await GCClient.getDeviceSettings(deviceId);
+
+// Solar capable devices
+await GCClient.getDeviceSolarData(deviceId, new Date());
+await GCClient.getDeviceSolarRange(deviceId, startDate, endDate);
+```
+
+### Courses
+
+```js
+const draft = await GCClient.getCourseDraftFromActivity(activityId); // not saved
+const fit = await GCClient.exportCourseAsFit(courseId); // Buffer
+require('fs').writeFileSync('course.fit', fit);
+
+await GCClient.getFavoriteCourses();
+
+// These modify the account
+await GCClient.addCourseToFavorites(courseId);
+await GCClient.removeCourseFromFavorites(courseId);
+await GCClient.deleteCourse(courseId);
+```
+
+### PacePro bands and power guides
+
+```js
+await GCClient.getPaceBandSummaries(); // or getPaceBandSummaries(courseId)
+await GCClient.getPaceBand(paceBandId);
+await GCClient.getPowerGuideSummaries(); // or getPowerGuideSummaries(courseId)
+await GCClient.getPowerGuide(powerGuideId);
+
+// These modify the account
+await GCClient.deletePaceBand(paceBandId);
+await GCClient.sendPaceBandToDevice(paceBandId, deviceId);
+await GCClient.deletePowerGuide(powerGuideId);
+```
+
+### Segments
+
+```js
+await GCClient.getSegmentClassifications();
+await GCClient.getSegmentSurfaceTypes();
+await GCClient.searchSegments({ limit: 10, showFavorites: true });
+await GCClient.getSegmentsForActivity(activityId);
+await GCClient.getSegment(segmentId);
+await GCClient.getSegmentLeaderboardRank(segmentId); // your own rank
+```
+
+## Records, Goals, Badges and Challenges
+
+The write methods in this section have not been verified against Garmin. Where
+the request body is a plain object, it is sent as given.
+
+### Personal Records
+
+In Garmin Connect: [Personal Records](https://connect.garmin.com/app/personal-records)
+
+![Personal records page in Garmin Connect](./docs/images/personal-records.jpg)
+
+| On screen         | Method                                             |
+| ----------------- | -------------------------------------------------- |
+| Records per sport | `getPersonalRecords()`, `getPersonalRecordTypes()` |
+
+```js
+const records = await GCClient.getPersonalRecords();
+const recordTypes = await GCClient.getPersonalRecordTypes();
+```
+
+### Goals
+
+In Garmin Connect: [Goals](https://connect.garmin.com/app/goals)
+
+![Goals page in Garmin Connect](./docs/images/goals.jpg)
+
+| On screen                     | Method                                                         |
+| ----------------------------- | -------------------------------------------------------------- |
+| Active, Future and Past Goals | `getGoals('active')`, `getGoals('future')`, `getGoals('past')` |
+| Create a New Goal \*          | `createGoal()`                                                 |
+
+```js
+// status: 'active' (default), 'future' or 'past'
+const goals = await GCClient.getGoals('past', { start: 0, limit: 20 });
+
+// These modify the account
+await GCClient.createGoal(goal);
+await GCClient.deleteGoal(goalId);
+```
+
+### Daily and Weight Goals
+
+```js
+const stepGoal = await GCClient.getDailyStepGoal(new Date('2026-01-15'));
+const effectiveGoals = await GCClient.getEffectiveGoals();
+
+// These modify the account
+await GCClient.updateDailyWellnessGoal(new Date('2026-01-15'), goal);
+await GCClient.setWeightGoal(70000); // grams, from today
+```
+
+### Badges
+
+In Garmin Connect: [Badges](https://connect.garmin.com/app/badges)
+
+![Earned badges in Garmin Connect](./docs/images/badges.jpg)
+
+| On screen | Method                 |
+| --------- | ---------------------- |
+| Earned    | `getEarnedBadges()`    |
+| Available | `getAvailableBadges()` |
+
+```js
+const earned = await GCClient.getEarnedBadges();
+const available = await GCClient.getAvailableBadges();
+```
+
+### Challenges
+
+In Garmin Connect: [Challenges](https://connect.garmin.com/app/challenge)
+
+![Challenges page in Garmin Connect](./docs/images/challenges.jpg)
+
+| On screen                         | Method                             |
+| --------------------------------- | ---------------------------------- |
+| Join a Challenge                  | `getAvailableBadgeChallenges()`    |
+| Start an Expedition               | `getAvailableVirtualChallenges()`  |
+| Current Challenges (further down) | `getNonCompletedAdHocChallenges()` |
+| Join \*                           | `joinBadgeChallenge()`             |
+
+```js
+const open = await GCClient.getAvailableBadgeChallenges();
+const completed = await GCClient.getCompletedBadgeChallenges();
+const unfinished = await GCClient.getNonCompletedBadgeChallenges();
+const virtualChallenges = await GCClient.getAvailableVirtualChallenges();
+
+const past = await GCClient.getHistoricalAdHocChallenges();
+const current = await GCClient.getNonCompletedAdHocChallenges();
+
+// Modifies the account. The library cannot leave a challenge.
+await GCClient.joinBadgeChallenge(open[0].uuid);
+
+// Modifies the account and can send invitations to other people
+await GCClient.createAdHocChallenge(challenge);
+```
+
+### Multi-day Events
+
+```js
+// null when there are none
+const events = await GCClient.getMultiDayActivities();
+const event = await GCClient.getMultiDayActivity(eventId);
+const activities = await GCClient.getActivitiesOfMultiDayActivity(eventId);
+
+// These modify the account
+await GCClient.createMultiDayActivity({
+    name: 'Weekend tour',
+    startDate: new Date('2026-05-01'),
+    endDate: new Date('2026-05-03'),
+    accessControlRule, // accepted values are unknown, there is no default
+    activityIds: []
+});
+await GCClient.deleteMultiDayActivity(eventId);
+```
+
+## Dogs
+
+Dog profiles, the dogs of an activity and statistics per dog. All the requests, writes included, were run in November 2026 against test data, through the Garmin Connect web app. They have **not** been run with the login of this library, and dog profiles are served by another host (`gcx.garmin.com`) than the rest of the library uses.
+
+### Dog Profiles
+
+In Garmin Connect: [Settings, then Dogs](https://connect.garmin.com/app/settings/dogs)
+
+![Dog settings in Garmin Connect](./docs/images/dogs.jpg)
+
+| On screen        | Method                      |
+| ---------------- | --------------------------- |
+| Totals           | `getDogStatsTotals()`       |
+| List of dogs     | `getDogs()`                 |
+| Whether it is on | `getDogActivitiesSetting()` |
+| Add a Dog \*     | `createDog()`               |
+
+```js
+const breeds = await GCClient.getDogBreeds();
+const golden = breeds.find((b) => b.key === 'DOG_BREED_GOLDEN_RETRIEVER');
+
+// These modify the account
+const dog = await GCClient.createDog({
+    name: 'Biscuit', // the only required field
+    primaryBreedId: golden.id,
+    gender: 'male',
+    isNeutered: true,
+    weightInGrams: 30000,
+    birthdate: new Date(2022, 3, 1),
+    birthdatePrecision: 'month' // or 'day', the default
+});
+await GCClient.uploadDogPhoto(dog.id, './biscuit.jpg'); // JPEG, PNG or GIF
+
+const dogs = await GCClient.getDogs({ status: 'active' });
+```
+
+![Profile of one dog in Garmin Connect](./docs/images/dog-profile.jpg)
+
+| On screen                | Method                                             |
+| ------------------------ | -------------------------------------------------- |
+| Picture and details      | `getDog()`                                         |
+| Distance, time and count | `getDogStats()`                                    |
+| Activity table           | `searchActivities({ hasDog: true, dogProfileId })` |
+| Edit Profile \*          | `updateDog()`, `uploadDogPhoto()`                  |
+| Menu \*                  | `setDogStatus()`, `deleteDog()`                    |
+
+```js
+// A field left out keeps its value, null clears it. These modify the account.
+await GCClient.updateDog(dog.id, { weightInGrams: 29500, nickname: null });
+await GCClient.setDogStatus(dog.id, 'retired'); // or 'active'
+await GCClient.deleteDog(dog.id); // cannot be undone
+```
+
+The web app allows 10 active dogs.
+
+### Dogs of an Activity
+
+![Activity with a dog in Garmin Connect](./docs/images/dog-activity.jpg)
+
+| On screen    | Method                                                 |
+| ------------ | ------------------------------------------------------ |
+| Dogs card    | `getDogs()`, `getDogSocialProfiles()`, `getDogStats()` |
+| Edit Dogs \* | `setActivityDogs()`                                    |
+
+```js
+// Replaces the dogs of the activity. These modify the account.
+await GCClient.setActivityDogs(activityId, [dog.id]);
+await GCClient.setActivityDogs(activityId, [], true); // a dog without profile
+await GCClient.setActivityDogs(activityId, []); // no dog
+```
+
+Garmin accepts IDs of dogs that do not exist, so take them from `getDogs()`.
+
+![Activities with a dog in Garmin Connect](./docs/images/dog-activities.jpg)
+
+| On screen   | Method                               |
+| ----------- | ------------------------------------ |
+| Dogs filter | `searchActivities({ hasDog: true })` |
+
+```js
+const withADog = await GCClient.searchActivities({ hasDog: true });
+const withBiscuit = await GCClient.searchActivities({ dogProfileId: dog.id });
+```
+
+`hasDog: false` is not a filter: Garmin ignores it.
+
+### Dog Statistics
+
+Distances are in **centimetres** and durations in **milliseconds**.
+
+```js
+const totals = await GCClient.getDogStatsTotals();
+console.log(totals.countOfActivities, totals.stats.all.distance.sum / 100, 'm');
+
+const [week] = await GCClient.getDogStats([dog.id], {
+    startDate: new Date('2026-11-22'),
+    endDate: new Date('2026-11-28')
+});
+week.stats.all.animals.animalProfileGroups.forEach((group) =>
+    console.log(group.animalProfileId, group.numberOfActivities)
+);
+```
+
+### Settings
+
+```js
+// null when no setting was saved for the dog
+const physio = await GCClient.getDogPhysioSetting(dog.id);
+const all = await GCClient.getDogPhysioSettings();
+
+const feature = await GCClient.getDogActivitiesSetting(); // OPT_IN or OPT_OUT
+
+// These modify the account
+await GCClient.setDogPhysioExcluded(dog.id, true);
+await GCClient.setDogActivitiesOptIn(true);
+```
+
 ## Custom Requests
 
 The library provides methods for making custom requests to the Garmin Connect API:
@@ -1040,4 +1984,46 @@ async post<T>(url: string, data: any)
  * @returns Response data of type T
  */
 async put<T>(url: string, data: any)
+```
+
+```js
+/**
+ * Performs a DELETE or PATCH request to the specified URL
+ */
+async delete<T>(url: string, config?: AxiosRequestConfig)
+async patch<T>(url: string, data: any)
+```
+
+```js
+/**
+ * Runs a read query against the GraphQL gateway
+ * @returns The `data` member of the response
+ */
+async graphql<T>(query: string): Promise<T>
+```
+
+## Testing
+
+```bash
+npm test
+```
+
+Runs the integration tests in `tests/integration` against a local server that stands in for Garmin Connect. No account or network is needed.
+
+The tests in `tests/live` call the real Garmin Connect and are skipped by default. Sign in once to save tokens in `.garmin-tokens` (you are asked for the MFA code if your account uses one):
+
+```bash
+GARMIN_USERNAME=my.email@example.com GARMIN_PASSWORD=... npm run test:live:login
+```
+
+Then run the read-only tests:
+
+```bash
+GARMIN_LIVE=1 npm run test:live
+```
+
+`GARMIN_ALLOW_WRITES=1` adds the tests that change your account. Each one creates its own data and deletes it again. Read them before you run them: if a deletion fails, test data can be left behind.
+
+```bash
+GARMIN_LIVE=1 GARMIN_ALLOW_WRITES=1 npm run test:live
 ```

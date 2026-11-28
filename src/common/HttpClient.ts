@@ -60,9 +60,6 @@ interface ISSOResponse {
 
 const OAUTH_CONSUMER_URL =
     'https://thegarth.s3.amazonaws.com/oauth_consumer.json';
-//  refresh token
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
 
 export class HttpClient {
     client: AxiosInstance;
@@ -70,6 +67,8 @@ export class HttpClient {
     oauth1Token: IOauth1Token | undefined;
     oauth2Token: IOauth2Token | undefined;
     OAUTH_CONSUMER: IOauth1Consumer | undefined;
+    // The token refresh in progress, shared by every request that needs it.
+    private pendingRefresh: Promise<void> | undefined;
     // Minimal in-memory cookie jar. Garmin's SSO carries the login session in
     // cookies, and the MFA verify step requires the same session that received
     // the challenge. axios does not persist cookies on its own, so we replay
@@ -93,42 +92,10 @@ export class HttpClient {
             (response) => response,
             async (error) => {
                 const originalRequest = error.config;
-                // console.log('originalRequest:', originalRequest)
                 // Auto Refresh token
-                if (
-                    error?.response?.status === 401 &&
-                    !originalRequest?._retry
-                ) {
-                    if (!this.oauth2Token) {
-                        return;
-                    }
-                    if (isRefreshing) {
-                        try {
-                            const token = await new Promise<string>(
-                                (resolve) => {
-                                    refreshSubscribers.push((token) => {
-                                        resolve(token);
-                                    });
-                                }
-                            );
-                            originalRequest.headers.Authorization = `Bearer ${token}`;
-                            return this.client(originalRequest);
-                        } catch (err) {
-                            console.log('err:', err);
-                            return Promise.reject(err);
-                        }
-                    }
-
+                if (this.canRefreshAndRetry(error)) {
                     originalRequest._retry = true;
-                    isRefreshing = true;
-                    console.log('interceptors: refreshOauth2Token start');
-                    await this.refreshOauth2Token();
-                    console.log('interceptors: refreshOauth2Token end');
-                    isRefreshing = false;
-                    refreshSubscribers.forEach((subscriber) =>
-                        subscriber(this.oauth2Token!.access_token)
-                    );
-                    refreshSubscribers = [];
+                    await this.refreshOauth2TokenOnce();
                     originalRequest.headers.Authorization = `Bearer ${
                         this.oauth2Token!.access_token
                     }`;
@@ -222,6 +189,33 @@ export class HttpClient {
             headers: {
                 ...config?.headers,
                 'X-Http-Method-Override': 'DELETE'
+            }
+        });
+        return response?.data;
+    }
+
+    /**
+     * Sends a real `DELETE`, for services that reject the method override
+     * that `delete` uses
+     */
+    async deleteRequest<T>(
+        url: string,
+        config?: AxiosRequestConfig<any>
+    ): Promise<T> {
+        const response = await this.client.delete<T>(url, config);
+        return response?.data;
+    }
+
+    async patch<T>(
+        url: string,
+        data: unknown,
+        config?: AxiosRequestConfig<any>
+    ): Promise<T> {
+        const response = await this.client.post<T>(url, data, {
+            ...config,
+            headers: {
+                ...config?.headers,
+                'X-Http-Method-Override': 'PATCH'
             }
         });
         return response?.data;
@@ -481,6 +475,39 @@ export class HttpClient {
         return verifyResult.serviceTicketId;
     }
 
+    /**
+     * A request is worth retrying when it failed with a 401 for the first time
+     * and there is a token to refresh (or a refresh already running). The OAuth
+     * requests are excluded: the refresh depends on them, so waiting for it
+     * would deadlock.
+     */
+    private canRefreshAndRetry(error: any): boolean {
+        const request = error?.config;
+        return (
+            error?.response?.status === 401 &&
+            !!request &&
+            !request._retry &&
+            !request.url?.startsWith(this.url.OAUTH_URL) &&
+            !!(this.oauth2Token || this.pendingRefresh)
+        );
+    }
+
+    private refreshOauth2TokenOnce(): Promise<void> {
+        if (!this.pendingRefresh) {
+            const done = () => {
+                this.pendingRefresh = undefined;
+            };
+            this.pendingRefresh = this.refreshOauth2Token().then(
+                done,
+                (error) => {
+                    done();
+                    throw error;
+                }
+            );
+        }
+        return this.pendingRefresh;
+    }
+
     async refreshOauth2Token() {
         if (!this.OAUTH_CONSUMER) {
             await this.fetchOauthConsumer();
@@ -566,15 +593,23 @@ export class HttpClient {
         // console.log('login - step5AuthData:', step5AuthData);
         const url = `${baseUrl}?${qs.stringify(step5AuthData)}`;
         // console.log('exchange - url:', url);
+        // Cleared so the exchange is not sent with a Bearer header.
+        const previousToken = this.oauth2Token;
         this.oauth2Token = undefined;
-        const response = await this.post<IOauth2Token>(url, null, {
-            headers: {
-                'User-Agent': USER_AGENT_CONNECTMOBILE,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-        // console.log('exchange - response:', response);
-        this.oauth2Token = this.setOauth2TokenExpiresAt(response);
+        try {
+            const response = await this.post<IOauth2Token>(url, null, {
+                headers: {
+                    'User-Agent': USER_AGENT_CONNECTMOBILE,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+            // console.log('exchange - response:', response);
+            this.oauth2Token = this.setOauth2TokenExpiresAt(response);
+        } catch (error) {
+            // Keep the old token so that a later request can try again.
+            this.oauth2Token = previousToken;
+            throw error;
+        }
         // console.log('exchange - oauth2Token:', this.oauth2Token);
     }
 

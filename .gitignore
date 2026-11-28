@@ -26,3 +26,7 @@ garmin.config.json
 
 # tests
 test
+
+# build output of single test runs, saved login tokens
+.build
+.garmin-tokens

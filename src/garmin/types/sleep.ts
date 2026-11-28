@@ -1,36 +1,36 @@
 export interface SleepDTO {
-    id: number;
+    id: number | null;
     userProfilePK: number;
     calendarDate: string;
-    sleepTimeSeconds: number;
-    napTimeSeconds: number;
-    sleepWindowConfirmed: boolean;
-    sleepWindowConfirmationType: string;
-    sleepStartTimestampGMT: number;
-    sleepEndTimestampGMT: number;
-    sleepStartTimestampLocal: number;
-    sleepEndTimestampLocal: number;
+    sleepTimeSeconds: number | null;
+    napTimeSeconds: number | null;
+    sleepWindowConfirmed: boolean | null;
+    sleepWindowConfirmationType: string | null;
+    sleepStartTimestampGMT: number | null;
+    sleepEndTimestampGMT: number | null;
+    sleepStartTimestampLocal: number | null;
+    sleepEndTimestampLocal: number | null;
     autoSleepStartTimestampGMT: number | null;
     autoSleepEndTimestampGMT: number | null;
     sleepQualityTypePK: number | null;
     sleepResultTypePK: number | null;
-    unmeasurableSleepSeconds: number;
-    deepSleepSeconds: number;
-    lightSleepSeconds: number;
-    remSleepSeconds: number;
-    awakeSleepSeconds: number;
+    unmeasurableSleepSeconds: number | null;
+    deepSleepSeconds: number | null;
+    lightSleepSeconds: number | null;
+    remSleepSeconds: number | null;
+    awakeSleepSeconds: number | null;
     deviceRemCapable: boolean;
     retro: boolean;
-    sleepFromDevice: boolean;
-    averageRespirationValue: number;
-    lowestRespirationValue: number;
-    highestRespirationValue: number;
-    awakeCount: number;
-    avgSleepStress: number;
-    ageGroup: string;
-    sleepScoreFeedback: string;
-    sleepScoreInsight: string;
-    sleepScores: {
+    sleepFromDevice?: boolean;
+    averageRespirationValue?: number;
+    lowestRespirationValue?: number;
+    highestRespirationValue?: number;
+    awakeCount?: number;
+    avgSleepStress?: number;
+    ageGroup?: string;
+    sleepScoreFeedback?: string;
+    sleepScoreInsight?: string;
+    sleepScores?: {
         totalDuration: {
             qualifierKey: string;
             optimalStart: number;
@@ -80,7 +80,7 @@ export interface SleepDTO {
             idealEndInSeconds: number;
         };
     };
-    sleepVersion: number;
+    sleepVersion?: number;
 }
 
 export interface SleepMovement {
@@ -113,14 +113,15 @@ export interface SleepBodyBattery {
 export interface SleepData {
     dailySleepDTO: SleepDTO;
     sleepMovement: SleepMovement[];
-    remSleepData: boolean;
+    remSleepData: boolean | null;
     sleepLevels: SleepLevels[];
-    restlessMomentsCount: number;
-    wellnessEpochRespirationDataDTOList: WellnessEpochRespirationDataDTO[];
-    sleepHeartRate: SleepHeartRate[];
-    sleepBodyBattery: SleepBodyBattery[];
-    avgOvernightHrv: number;
-    hrvStatus: string;
-    bodyBatteryChange: number;
-    restingHeartRate: number;
+    skinTempDataExists?: boolean;
+    restlessMomentsCount?: number;
+    wellnessEpochRespirationDataDTOList?: WellnessEpochRespirationDataDTO[];
+    sleepHeartRate?: SleepHeartRate[];
+    sleepBodyBattery?: SleepBodyBattery[];
+    avgOvernightHrv?: number;
+    hrvStatus?: string;
+    bodyBatteryChange?: number;
+    restingHeartRate?: number;
 }

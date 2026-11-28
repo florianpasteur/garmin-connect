@@ -20,7 +20,7 @@ export function toIntervalsIcuDescription(workout: IWorkoutDetail): string {
             }
             const iterations = step.numberOfIterations ?? 1;
             lines.push(`Main Set ${iterations}x`);
-            for (const child of step.workoutSteps ?? []) {
+            for (const child of unrollSteps(step.workoutSteps ?? [])) {
                 lines.push(formatExecutableStep(child));
             }
             lines.push('');
@@ -49,9 +49,29 @@ export function toIntervalsIcuDescription(workout: IWorkoutDetail): string {
 
 function isRepeatStep(step: IWorkoutStep): boolean {
     return (
+        step.type === 'RepeatGroupDTO' ||
         step.type === 'WorkoutRepeatStepDTO' ||
         (Array.isArray(step.workoutSteps) && step.workoutSteps.length > 0)
     );
+}
+
+/**
+ * intervals.icu has no nested repeats, so a repeat group inside another one is
+ * written out as many times as it iterates.
+ */
+function unrollSteps(steps: IWorkoutStep[]): IWorkoutStep[] {
+    const result: IWorkoutStep[] = [];
+    for (const step of steps) {
+        if (!isRepeatStep(step)) {
+            result.push(step);
+            continue;
+        }
+        const children = unrollSteps(step.workoutSteps ?? []);
+        for (let i = 0; i < (step.numberOfIterations ?? 1); i++) {
+            result.push(...children);
+        }
+    }
+    return result;
 }
 
 function sectionForStep(step: IWorkoutStep): SectionName {
@@ -127,7 +147,7 @@ function formatDuration(step: IWorkoutStep): string | null {
     const key = step.endCondition?.conditionTypeKey;
     const value = step.endConditionValue;
 
-    if (key === 'time' && value != null) {
+    if ((key === 'time' || key === 'fixed.rest') && value != null) {
         return formatTimeSeconds(value);
     }
     if (key === 'distance' && value != null) {
